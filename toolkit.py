@@ -195,7 +195,7 @@ def newtons_method_ui():
             f_prime_expr = sp.diff(f_expr, x)
             f_prime = sp.lambdify(x, f_prime_expr, 'math')
             
-            st.info(f"Automatically calculated derivative: **{f_prime_expr}**")
+            st.info(f"Automatically calculated derivative: `{f_prime_expr}`")
             
             k = 1 
             current_a = a 
