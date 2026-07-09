@@ -126,6 +126,102 @@ def linear_interpolation_ui():
             st.error(f"Invalid input or mathematical error: {e}")
             st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
 
+def method_of_secants_ui():
+    st.header("The Method of Secants")
+    
+    eq_str = st.text_input("Enter the single variable equation in terms of 'x'", value="x**2 - 4", key="sec_eq")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        a = st.number_input("First initial guess (a)", value=0.0, key="sec_a")
+        b = st.number_input("Second initial guess (b)", value=5.0, key="sec_b")
+    with col2:
+        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="sec_tol")
+        max_iter = st.number_input("Maximum iterations", value=50, step=1, key="sec_max")
+
+    if st.button("Calculate Secant Root"):
+        try:
+            x = sp.Symbol('x')
+            f_expr = sp.sympify(eq_str)
+            f = sp.lambdify(x, f_expr, 'math') 
+            
+            k = 1
+            x_hat = b 
+            
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    f_a = f(a)
+                    f_b = f(b)
+                    
+                    if f_b == f_a:
+                        st.error("f(b) == f(a). Division by zero detected. Terminating.")
+                        return 
+                        
+                    x_hat = a - f_a * (a - b) / (f_a - f_b)
+                    
+                    if abs(f(x_hat)) < tol:
+                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations (tolerance met).")
+                        return
+
+                    a = b
+                    b = x_hat
+                    k += 1
+                    
+                st.warning(f"Maximum iterations ({max_iter}) reached. Best estimate of root: **{x_hat:.6f}**")
+                
+        except Exception as e:
+            st.error(f"Invalid input or mathematical error: {e}")
+            st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
+
+def newtons_method_ui():
+    st.header("Newton's Method")
+    
+    eq_str = st.text_input("Enter the single variable equation in terms of 'x'", value="x**2 - 4", key="newton_eq")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        a = st.number_input("Initial guess (a)", value=5.0, key="newton_a")
+        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="newton_tol")
+    with col2:
+        max_iter = st.number_input("Maximum iterations", value=50, step=1, key="newton_max")
+
+    if st.button("Calculate Newton's Root"):
+        try:
+            x = sp.Symbol('x')
+            f_expr = sp.sympify(eq_str)
+            f = sp.lambdify(x, f_expr, 'math') 
+            
+            # Automatically calculate the derivative using sympy
+            f_prime_expr = sp.diff(f_expr, x)
+            f_prime = sp.lambdify(x, f_prime_expr, 'math')
+            
+            st.info(f"Automatically calculated derivative: **{f_prime_expr}**")
+            
+            k = 1 
+            current_a = a 
+            
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    if abs(f(current_a)) < tol:
+                        st.success(f"Root estimated at **x = {current_a:.6f}** after {k-1} iterations (tolerance met).")
+                        return
+
+                    f_prime_a = f_prime(current_a)
+                    
+                    if f_prime_a != 0:
+                        current_a = current_a - f(current_a) / f_prime_a
+                    else:
+                        st.error("Derivative f'(a) is zero. Terminating to avoid division by zero.")
+                        return 
+                        
+                    k += 1
+                    
+                st.warning(f"Maximum iterations ({max_iter}) reached. Best estimate of root: **{current_a:.6f}**")
+                
+        except Exception as e:
+            st.error(f"Invalid input or mathematical error: {e}")
+            st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
+
 # --- MAIN APP ROUTING ---
 
 st.set_page_config(page_title="Program Calculator", layout="centered")
