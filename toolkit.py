@@ -243,11 +243,9 @@ if category == "Single Variable Equation":
     elif method == "Linear Interpolation":
         linear_interpolation_ui()
     elif method == "The Method of Secants":
-        st.header("The Method of Secants")
-        st.info("Computation code goes here...")
+        method_of_secants_ui() 
     elif method == "Newton's Method":
-        st.header("Newton's Method")
-        st.info("Computation code goes here...")
+        newtons_method_ui()   
 
 elif category == "System of Linear Equations":
     method = st.sidebar.radio(
