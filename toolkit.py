@@ -214,7 +214,6 @@ def newtons_ui():
 def create_interactive_matrix(name, rows, cols):
     st.write(f"**Matrix {name}**")
     df = pd.DataFrame(np.zeros((rows, cols)))
-    # Added dynamic key so Streamlit handles dimension changes perfectly
     return st.data_editor(df, key=f"matrix_{name}_{rows}x{cols}", num_rows="fixed")
 
 def matrix_ui(operation):
@@ -235,11 +234,6 @@ def matrix_ui(operation):
             r_b = c_a
             st.write(f"Matrix B Rows: {r_b} (Forced to match A cols)")
             c_b = st.number_input("Matrix B Cols", min_value=1, value=2, key="cb")
-        elif operation == "division":
-            r_b = c_a
-            st.write(f"Matrix B Rows: {r_b} (Forced to match A cols)")
-            c_b = r_b
-            st.write(f"Matrix B Cols: {c_b} (Forced to be square)")
             
         df_B = create_interactive_matrix("B", r_b, c_b)
 
@@ -254,14 +248,9 @@ def matrix_ui(operation):
                 C = A - B
             elif operation == "multiplication":
                 C = np.dot(A, B)
-            elif operation == "division":
-                B_inv = np.linalg.inv(B)
-                C = np.dot(A, B_inv)
                 
             st.success("Result:")
             st.dataframe(pd.DataFrame(C))
-        except np.linalg.LinAlgError:
-            st.error("Matrix B is singular and cannot be inverted. Division impossible.")
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -342,7 +331,6 @@ def cubic_splines_ui():
 def pca_ui():
     st.header("Principal Component Analysis")
     
-    # Inputs placed cleanly in columns
     col1, col2 = st.columns(2)
     with col1:
         r = st.number_input("Number of samples (rows)", min_value=2, value=4)
@@ -378,7 +366,7 @@ def pca_ui():
 
 # --- MAIN SIDEBAR ROUTING ---
 
-st.sidebar.title("Computational Science Toolkit")
+st.sidebar.title("🧮 Computational Science Toolkit")
 category = st.sidebar.selectbox(
     "Select Category", 
     ["Single Variable Equation", "System of Linear Equations", "Approximation"]
@@ -392,7 +380,8 @@ if category == "Single Variable Equation":
     elif method == "Newton's Method": newtons_ui()
 
 elif category == "System of Linear Equations":
-    method = st.sidebar.radio("Select Method", ["Addition", "Subtraction", "Multiplication", "Division"])
+    # Removed "Division" from the radio button options
+    method = st.sidebar.radio("Select Method", ["Addition", "Subtraction", "Multiplication"])
     matrix_ui(method.lower())
 
 elif category == "Approximation":
