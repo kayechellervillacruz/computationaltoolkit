@@ -303,7 +303,7 @@ def matrix_ui(operation):
             elif operation == "multiplication":
                 C = np.dot(A, B)
                 
-            st.success("Success! Here is the resulting matrix:")
+            st.success("Resulting matrix:")
             
             # Formatting to 4 decimal places or integer
             C_formatted = [[int(val) if float(val).is_integer() else round(float(val), 4) for val in row] for row in C]
