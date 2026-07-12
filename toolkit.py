@@ -378,7 +378,7 @@ def pca_ui():
 
 # --- MAIN SIDEBAR ROUTING ---
 
-st.sidebar.title("🧮 Computational Science Toolkit")
+st.sidebar.title("Computational Science Toolkit")
 category = st.sidebar.selectbox(
     "Select Category", 
     ["Single Variable Equation", "System of Linear Equations", "Approximation"]
