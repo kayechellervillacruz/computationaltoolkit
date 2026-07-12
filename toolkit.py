@@ -47,7 +47,7 @@ def bisection_ui():
                 while k <= max_iter:
                     x_hat = (a + b) / 2.0
                     if abs(b - a) / 2.0 < tol:
-                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations (tolerance met).")
+                        st.success(f"Root estimated at **x = {x_hat:.4f}** after {k} iterations (tolerance met).")
                         return
                     if sign(f(x_hat)) == sign(f(a)):
                         a = x_hat
