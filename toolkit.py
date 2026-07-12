@@ -5,7 +5,7 @@ from scipy.interpolate import CubicSpline
 import pandas as pd
 
 # --- PAGE CONFIGURATION ---
-st.set_page_config(page_title="Computational Science Toolkit", page_icon="🧮", layout="wide")
+st.set_page_config(page_title="Computational Science Toolkit", layout="wide")
 
 # --- HELPER FUNCTIONS ---
 def sign(val):
@@ -22,7 +22,7 @@ def format_res(val):
 def display_results_dashboard(root, f_val, iterations, status_msg, status_type="success"):
     """Creates a clean, unified dashboard for single variable results."""
     st.divider()
-    st.subheader("📊 Calculation Results")
+    st.subheader("Calculation Results")
     
     if status_type == "success":
         st.success(status_msg)
