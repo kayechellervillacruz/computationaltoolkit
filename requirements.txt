@@ -1,5 +1,5 @@
 streamlit
-numpy
+numpy==1.26.4
 sympy
-scipy
+scipy==1.12.0
 pandas
