@@ -19,17 +19,6 @@ def format_res(val):
         return f"{int(val)}"
     return f"{float(val):.4f}"
 
-def plot_function_graph(f, center_x, span=5.0):
-    """Generates a clean Streamlit line chart to visualize the root."""
-    x_vals = np.linspace(center_x - span, center_x + span, 200)
-    y_vals = [f(xv) for xv in x_vals]
-    # Create a DataFrame with the function curve and a flat y=0 reference line
-    df = pd.DataFrame({
-        "f(x)": y_vals, 
-        "Zero Line (y=0)": [0.0] * 200
-    }, index=x_vals)
-    st.line_chart(df)
-
 def display_results_dashboard(root, f_val, iterations, status_msg, status_type="success"):
     """Creates a clean, unified dashboard for single variable results."""
     st.divider()
@@ -76,8 +65,6 @@ def bisection_ui():
             
             if f(a) * f(b) > 0:
                 st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
-                st.markdown("**Visual Diagnostics:**")
-                plot_function_graph(f, (a+b)/2, span=abs(b-a)+2)
                 return
 
             k = 1
@@ -103,9 +90,6 @@ def bisection_ui():
                     k += 1
                 else:
                     display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
-                
-                st.markdown("**Function Plot (Centered on Root)**")
-                plot_function_graph(f, x_hat, span=max(abs(b-a), 2.0))
                 
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
@@ -139,7 +123,6 @@ def linear_interpolation_ui():
             
             if f(a) * f(b) > 0:
                 st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
-                plot_function_graph(f, (a+b)/2, span=abs(b-a)+2)
                 return
 
             k = 1
@@ -168,9 +151,6 @@ def linear_interpolation_ui():
                 else:
                     display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
                     
-                st.markdown("**Function Plot (Centered on Root)**")
-                plot_function_graph(f, x_hat, span=max(abs(b-a), 2.0))
-                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
@@ -223,9 +203,6 @@ def secants_ui():
                 else:
                     display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
                     
-                st.markdown("**Function Plot (Centered on Root)**")
-                plot_function_graph(f, x_hat, span=3.0)
-                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
@@ -280,9 +257,6 @@ def newtons_ui():
                 else:
                     display_results_dashboard(a, f(a), max_iter, "Maximum iterations reached.", "warning")
                     
-                st.markdown("**Function Plot (Centered on Root)**")
-                plot_function_graph(f, a, span=3.0)
-                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
