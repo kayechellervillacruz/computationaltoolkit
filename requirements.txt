@@ -1,4 +1,5 @@
 streamlit
-scipy
-sympy
 numpy
+sympy
+scipy
+pandas
