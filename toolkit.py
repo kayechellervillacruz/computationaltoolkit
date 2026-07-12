@@ -19,6 +19,32 @@ def format_res(val):
         return f"{int(val)}"
     return f"{float(val):.4f}"
 
+def plot_function_graph(f, center_x, span=5.0):
+    """Generates a clean Streamlit line chart to visualize the root."""
+    x_vals = np.linspace(center_x - span, center_x + span, 200)
+    y_vals = [f(xv) for xv in x_vals]
+    # Create a DataFrame with the function curve and a flat y=0 reference line
+    df = pd.DataFrame({
+        "f(x)": y_vals, 
+        "Zero Line (y=0)": [0.0] * 200
+    }, index=x_vals)
+    st.line_chart(df)
+
+def display_results_dashboard(root, f_val, iterations, status_msg, status_type="success"):
+    """Creates a clean, unified dashboard for single variable results."""
+    st.divider()
+    st.subheader("📊 Calculation Results")
+    
+    if status_type == "success":
+        st.success(status_msg)
+    else:
+        st.warning(status_msg)
+        
+    res_col1, res_col2, res_col3 = st.columns(3)
+    res_col1.metric("Estimated Root (x)", format_res(root))
+    res_col2.metric("f(x) at Root", format_res(f_val))
+    res_col3.metric("Iterations Used", str(iterations))
+
 # --- 1. SINGLE VARIABLE EQUATIONS ---
 
 def bisection_ui():
@@ -27,14 +53,14 @@ def bisection_ui():
     st.divider()
     
     with st.form("bisection_form"):
-        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
         
         col1, col2 = st.columns(2)
         with col1:
             a = st.number_input("Lower bound (a)", value=0.0)
             tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
         with col2:
-            b = st.number_input("Upper bound (b)", value=5.0)
+            b = st.number_input("Upper bound (b)", value=1.0)
             max_iter = st.number_input("Max iterations", value=50, step=1)
             
         submitted = st.form_submit_button("Calculate Root", type="primary")
@@ -45,8 +71,13 @@ def bisection_ui():
             f_expr = sp.sympify(eq_str)
             f = sp.lambdify(x, f_expr, 'math')
             
+            st.markdown("**Interpreted Equation:**")
+            st.latex(f"f(x) = {sp.latex(f_expr)}")
+            
             if f(a) * f(b) > 0:
                 st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
+                st.markdown("**Visual Diagnostics:**")
+                plot_function_graph(f, (a+b)/2, span=abs(b-a)+2)
                 return
 
             k = 1
@@ -55,23 +86,27 @@ def bisection_ui():
                 while k <= max_iter:
                     x_hat = (a + b) / 2.0
                     if abs(b - a) / 2.0 < tol:
-                        st.success(f"Tolerance met after {k} iterations.")
-                        st.metric(label="Estimated Root (x)", value=format_res(x_hat))
-                        return
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Tolerance met after {k} iterations.")
+                        break
+                    
                     if sign(f(x_hat)) == sign(f(a)):
                         a = x_hat
                     elif sign(f(x_hat)) == sign(f(b)):
                         b = x_hat
                     elif sign(f(x_hat)) == 0:
-                        st.success(f"Exact root found after {k} iterations.")
-                        st.metric(label="Exact Root (x)", value=format_res(x_hat))
-                        return
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Exact root found after {k} iterations.")
+                        break
                     else:
                         st.error("Unexpected error during sign evaluation.")
                         return
+                    
                     k += 1
-                st.warning("Maximum iterations reached.")
-                st.metric(label="Best Estimate (x)", value=format_res(x_hat))
+                else:
+                    display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
+                
+                st.markdown("**Function Plot (Centered on Root)**")
+                plot_function_graph(f, x_hat, span=max(abs(b-a), 2.0))
+                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
@@ -81,14 +116,14 @@ def linear_interpolation_ui():
     st.divider()
 
     with st.form("linear_interp_form"):
-        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
         
         col1, col2 = st.columns(2)
         with col1:
             a = st.number_input("Lower bound (a)", value=0.0)
             tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
         with col2:
-            b = st.number_input("Upper bound (b)", value=5.0)
+            b = st.number_input("Upper bound (b)", value=1.0)
             max_iter = st.number_input("Max iterations", value=50, step=1)
             
         submitted = st.form_submit_button("Calculate Root", type="primary")
@@ -99,8 +134,12 @@ def linear_interpolation_ui():
             f_expr = sp.sympify(eq_str)
             f = sp.lambdify(x, f_expr, 'math')
             
+            st.markdown("**Interpreted Equation:**")
+            st.latex(f"f(x) = {sp.latex(f_expr)}")
+            
             if f(a) * f(b) > 0:
                 st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
+                plot_function_graph(f, (a+b)/2, span=abs(b-a)+2)
                 return
 
             k = 1
@@ -116,23 +155,22 @@ def linear_interpolation_ui():
                     x_hat = a - f_a * (a - b) / (f_a - f_b)
                     
                     if abs(f(x_hat)) < tol:
-                        st.success(f"Tolerance met after {k} iterations.")
-                        st.metric(label="Estimated Root (x)", value=format_res(x_hat))
-                        return
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Tolerance met after {k} iterations.")
+                        break
                     if sign(f(x_hat)) == 0:
-                        st.success(f"Exact root found after {k} iterations.")
-                        st.metric(label="Exact Root (x)", value=format_res(x_hat))
-                        return
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Exact root found after {k} iterations.")
+                        break
                     elif sign(f(x_hat)) == sign(f(a)):
                         a = x_hat
                     elif sign(f(x_hat)) == sign(f(b)):
                         b = x_hat
-                    else:
-                        st.error("Unexpected error during sign evaluation.")
-                        return
                     k += 1
-                st.warning("Maximum iterations reached.")
-                st.metric(label="Best Estimate (x)", value=format_res(x_hat))
+                else:
+                    display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
+                    
+                st.markdown("**Function Plot (Centered on Root)**")
+                plot_function_graph(f, x_hat, span=max(abs(b-a), 2.0))
+                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
@@ -142,12 +180,12 @@ def secants_ui():
     st.divider()
 
     with st.form("secants_form"):
-        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
         
         col1, col2 = st.columns(2)
         with col1:
             a = st.number_input("First initial guess (a)", value=0.0)
-            b = st.number_input("Second initial guess (b)", value=5.0)
+            b = st.number_input("Second initial guess (b)", value=1.0)
         with col2:
             tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
             max_iter = st.number_input("Max iterations", value=50, step=1)
@@ -159,6 +197,9 @@ def secants_ui():
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
             f = sp.lambdify(x, f_expr, 'math')
+            
+            st.markdown("**Interpreted Equation:**")
+            st.latex(f"f(x) = {sp.latex(f_expr)}")
             
             k = 1
             x_hat = b
@@ -173,15 +214,18 @@ def secants_ui():
                     x_hat = a - f_a * (a - b) / (f_a - f_b)
                     
                     if abs(f(x_hat)) < tol:
-                        st.success(f"Tolerance met after {k} iterations.")
-                        st.metric(label="Estimated Root (x)", value=format_res(x_hat))
-                        return
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Tolerance met after {k} iterations.")
+                        break
                     
                     a = b
                     b = x_hat
                     k += 1
-                st.warning("Maximum iterations reached.")
-                st.metric(label="Best Estimate (x)", value=format_res(x_hat))
+                else:
+                    display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
+                    
+                st.markdown("**Function Plot (Centered on Root)**")
+                plot_function_graph(f, x_hat, span=3.0)
+                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
@@ -191,11 +235,11 @@ def newtons_ui():
     st.divider()
 
     with st.form("newtons_form"):
-        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
         
         col1, col2 = st.columns(2)
         with col1:
-            a = st.number_input("Initial guess (a)", value=5.0)
+            a = st.number_input("Initial guess (a)", value=1.0)
             tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
         with col2:
             max_iter = st.number_input("Max iterations", value=50, step=1)
@@ -211,15 +255,20 @@ def newtons_ui():
             f_prime_expr = sp.diff(f_expr, x)
             f_prime = sp.lambdify(x, f_prime_expr, 'math')
             
-            st.info(f"Automatically calculated derivative: `{f_prime_expr}`")
+            col_eq1, col_eq2 = st.columns(2)
+            with col_eq1:
+                st.markdown("**Interpreted Equation:**")
+                st.latex(f"f(x) = {sp.latex(f_expr)}")
+            with col_eq2:
+                st.markdown("**Calculated Derivative:**")
+                st.latex(f"f'(x) = {sp.latex(f_prime_expr)}")
             
             k = 1
             with st.spinner("Calculating..."):
                 while k <= max_iter:
                     if abs(f(a)) < tol:
-                        st.success(f"Tolerance met after {k-1} iterations.")
-                        st.metric(label="Estimated Root (x)", value=format_res(a))
-                        return
+                        display_results_dashboard(a, f(a), k-1, f"Tolerance met after {k-1} iterations.")
+                        break
                     
                     f_prime_a = f_prime(a)
                     if f_prime_a != 0:
@@ -228,8 +277,12 @@ def newtons_ui():
                         st.error("Derivative is zero. Terminating to avoid division by zero.")
                         return
                     k += 1
-                st.warning("Maximum iterations reached.")
-                st.metric(label="Best Estimate (x)", value=format_res(a))
+                else:
+                    display_results_dashboard(a, f(a), max_iter, "Maximum iterations reached.", "warning")
+                    
+                st.markdown("**Function Plot (Centered on Root)**")
+                plot_function_graph(f, a, span=3.0)
+                
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
 
@@ -295,11 +348,11 @@ def least_squares_ui():
     with st.form("least_squares_form"):
         col1, col2 = st.columns(2)
         with col1:
-            x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
+            x_input = st.text_input("Enter X values (comma-separated)", value="-2, -1, 0, 1, 2, 3")
         with col2:
-            y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+            y_input = st.text_input("Enter Y values (comma-separated)", value="2, 2, 1, 0, 0, 3")
             
-        degree = st.number_input("Polynomial Degree", min_value=1, value=1)
+        degree = st.number_input("Polynomial Degree", min_value=1, value=2)
         submitted = st.form_submit_button("Calculate Least Squares", type="primary")
         
     if submitted:
@@ -315,10 +368,14 @@ def least_squares_ui():
                 
             coeffs = np.polyfit(x_vals, y_vals, degree)
             x_sym = sp.Symbol('x')
-            poly_expr = sum(c * x_sym**(degree - i) for i, c in enumerate(coeffs))
+            
+            # Formatting the coefficients nicely for sympy
+            rounded_coeffs = [round(c, 4) if not float(c).is_integer() else int(c) for c in coeffs]
+            poly_expr = sum(c * x_sym**(degree - i) for i, c in enumerate(rounded_coeffs))
             
             st.success("Calculation Complete")
-            st.info(f"Function: `{poly_expr}`")
+            st.markdown("**Fitted Polynomial Equation:**")
+            st.latex(f"f(x) = {sp.latex(poly_expr)}")
             
             predictions = np.polyval(coeffs, x_vals)
             df = pd.DataFrame({'X': x_vals, 'Actual Y': y_vals, 'Predicted Y': predictions})
@@ -359,7 +416,7 @@ def cubic_splines_ui():
             result = cs(eval_x)
             
             st.success("Spline generated successfully.")
-            st.metric(label=f"Interpolated value for f({eval_x})", value=f"{result:.4f}")
+            st.metric(label=f"Interpolated value for f({eval_x})", value=format_res(result))
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -409,7 +466,7 @@ def pca_ui():
 
 # --- MAIN SIDEBAR ROUTING ---
 
-st.sidebar.title("Computational Science")
+st.sidebar.title("🧮 Computational Science")
 st.sidebar.markdown("Select a mathematical method from the dropdown below to begin.")
 category = st.sidebar.selectbox(
     "Category", 
