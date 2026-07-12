@@ -1,8 +1,11 @@
 import streamlit as st
 import numpy as np
-from scipy import optimize
-from scipy.interpolate import CubicSpline
 import sympy as sp
+from scipy.interpolate import CubicSpline
+import pandas as pd
+
+# --- PAGE CONFIGURATION ---
+st.set_page_config(page_title="Computational Science Toolkit", layout="wide")
 
 # --- HELPER FUNCTIONS ---
 def sign(val):
@@ -10,12 +13,11 @@ def sign(val):
     elif val < 0: return -1
     else: return 0
 
-# --- COMPUTATION MODULES ---
+# --- 1. SINGLE VARIABLE EQUATIONS ---
 
 def bisection_ui():
     st.header("Bisection Method")
-    
-    eq_str = st.text_input("Enter the single variable equation in terms of 'x'", value="x**2 - 4")
+    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -23,67 +25,13 @@ def bisection_ui():
         tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
     with col2:
         b = st.number_input("Upper bound (b)", value=5.0)
-        max_iter = st.number_input("Maximum iterations", value=50, step=1)
+        max_iter = st.number_input("Max iterations", value=50, step=1)
         
-    if st.button("Calculate Bisection Root"):
+    if st.button("Calculate Bisection"):
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'math') 
-            
-            if f(a) * f(b) > 0:
-                st.error("The function must have opposite signs at the bounds 'a' and 'b'. Please try again with different bounds.")
-                return
-
-            k = 1
-            x_hat = a 
-            
-            with st.spinner("Calculating..."):
-                while k <= max_iter:
-                    x_hat = (a + b) / 2.0
-                    
-                    if abs(b - a) / 2.0 < tol:
-                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations (tolerance met).")
-                        return
-
-                    if sign(f(x_hat)) == sign(f(a)):
-                        a = x_hat
-                    elif sign(f(x_hat)) == sign(f(b)):
-                        b = x_hat
-                    elif sign(f(x_hat)) == 0:
-                        st.success(f"Exact root found at **x = {x_hat}** after {k} iterations.")
-                        return 
-                    else:
-                        st.error("Unexpected error during sign evaluation. Terminating.")
-                        return 
-                        
-                    k += 1
-                    
-                st.warning(f"Maximum iterations ({max_iter}) reached. Best estimate of root: **{x_hat:.6f}**")
-                
-        except Exception as e:
-            st.error(f"Invalid input or mathematical error: {e}")
-            st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
-
-
-def linear_interpolation_ui():
-    st.header("Linear Interpolation")
-    
-    eq_str = st.text_input("Enter the single variable equation in terms of 'x'", value="x**2 - 4", key="lin_eq")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        a = st.number_input("Lower bound (a)", value=0.0, key="lin_a")
-        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="lin_tol")
-    with col2:
-        b = st.number_input("Upper bound (b)", value=5.0, key="lin_b")
-        max_iter = st.number_input("Maximum iterations", value=50, step=1, key="lin_max")
-        
-    if st.button("Calculate Interpolation Root"):
-        try:
-            x = sp.Symbol('x')
-            f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'math') 
+            f = sp.lambdify(x, f_expr, 'math')
             
             if f(a) * f(b) > 0:
                 st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
@@ -91,45 +39,82 @@ def linear_interpolation_ui():
 
             k = 1
             x_hat = a
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    x_hat = (a + b) / 2.0
+                    if abs(b - a) / 2.0 < tol:
+                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations (tolerance met).")
+                        return
+                    if sign(f(x_hat)) == sign(f(a)):
+                        a = x_hat
+                    elif sign(f(x_hat)) == sign(f(b)):
+                        b = x_hat
+                    elif sign(f(x_hat)) == 0:
+                        st.success(f"Exact root found at **x = {x_hat}** after {k} iterations.")
+                        return
+                    else:
+                        st.error("Unexpected error during sign evaluation.")
+                        return
+                    k += 1
+                st.warning(f"Maximum iterations reached. Best estimate: **{x_hat:.6f}**")
+        except Exception as e:
+            st.error(f"Invalid input or mathematical error: {e}")
+
+def linear_interpolation_ui():
+    st.header("Linear Interpolation")
+    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4", key="li_eq")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        a = st.number_input("Lower bound (a)", value=0.0, key="li_a")
+        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="li_tol")
+    with col2:
+        b = st.number_input("Upper bound (b)", value=5.0, key="li_b")
+        max_iter = st.number_input("Max iterations", value=50, step=1, key="li_max")
+        
+    if st.button("Calculate Interpolation"):
+        try:
+            x = sp.Symbol('x')
+            f_expr = sp.sympify(eq_str)
+            f = sp.lambdify(x, f_expr, 'math')
             
+            if f(a) * f(b) > 0:
+                st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
+                return
+
+            k = 1
+            x_hat = a
             with st.spinner("Calculating..."):
                 while k <= max_iter:
                     f_a = f(a)
                     f_b = f(b)
-                    
                     if f_a - f_b == 0:
-                        st.error("Division by zero detected (f(a) - f(b) == 0). Terminating.")
+                        st.error("Division by zero detected. Terminating.")
                         return
-
+                        
                     x_hat = a - f_a * (a - b) / (f_a - f_b)
                     
                     if abs(f(x_hat)) < tol:
-                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations (tolerance met).")
+                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations.")
                         return
-
                     if sign(f(x_hat)) == 0:
                         st.success(f"Exact root found at **x = {x_hat}** after {k} iterations.")
-                        return 
+                        return
                     elif sign(f(x_hat)) == sign(f(a)):
                         a = x_hat
                     elif sign(f(x_hat)) == sign(f(b)):
                         b = x_hat
                     else:
-                        st.error("Unexpected error during sign evaluation. Terminating.")
-                        return 
-                        
+                        st.error("Unexpected error during sign evaluation.")
+                        return
                     k += 1
-                    
-                st.warning(f"Maximum iterations ({max_iter}) reached. Best estimate of root: **{x_hat:.6f}**")
-                
+                st.warning(f"Maximum iterations reached. Best estimate: **{x_hat:.6f}**")
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
-            st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
 
-def method_of_secants_ui():
-    st.header("The Method of Secants")
-    
-    eq_str = st.text_input("Enter the single variable equation in terms of 'x'", value="x**2 - 4", key="sec_eq")
+def secants_ui():
+    st.header("Method of Secants")
+    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4", key="sec_eq")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -137,130 +122,257 @@ def method_of_secants_ui():
         b = st.number_input("Second initial guess (b)", value=5.0, key="sec_b")
     with col2:
         tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="sec_tol")
-        max_iter = st.number_input("Maximum iterations", value=50, step=1, key="sec_max")
-
-    if st.button("Calculate Secant Root"):
+        max_iter = st.number_input("Max iterations", value=50, step=1, key="sec_max")
+        
+    if st.button("Calculate Secant"):
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'math') 
+            f = sp.lambdify(x, f_expr, 'math')
             
             k = 1
-            x_hat = b 
-            
+            x_hat = b
             with st.spinner("Calculating..."):
                 while k <= max_iter:
                     f_a = f(a)
                     f_b = f(b)
-                    
                     if f_b == f_a:
-                        st.error("f(b) == f(a). Division by zero detected. Terminating.")
-                        return 
+                        st.error("f(b) == f(a). Division by zero detected.")
+                        return
                         
                     x_hat = a - f_a * (a - b) / (f_a - f_b)
                     
                     if abs(f(x_hat)) < tol:
-                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations (tolerance met).")
+                        st.success(f"Root estimated at **x = {x_hat:.6f}** after {k} iterations.")
                         return
-
+                    
                     a = b
                     b = x_hat
                     k += 1
-                    
-                st.warning(f"Maximum iterations ({max_iter}) reached. Best estimate of root: **{x_hat:.6f}**")
-                
+                st.warning(f"Maximum iterations reached. Best estimate: **{x_hat:.6f}**")
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
-            st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
 
-def newtons_method_ui():
+def newtons_ui():
     st.header("Newton's Method")
-    
-    eq_str = st.text_input("Enter the single variable equation in terms of 'x'", value="x**2 - 4", key="newton_eq")
+    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4", key="newt_eq")
     
     col1, col2 = st.columns(2)
     with col1:
-        a = st.number_input("Initial guess (a)", value=5.0, key="newton_a")
-        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="newton_tol")
+        a = st.number_input("Initial guess (a)", value=5.0, key="newt_a")
+        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="newt_tol")
     with col2:
-        max_iter = st.number_input("Maximum iterations", value=50, step=1, key="newton_max")
-
-    if st.button("Calculate Newton's Root"):
+        max_iter = st.number_input("Max iterations", value=50, step=1, key="newt_max")
+        
+    if st.button("Calculate Newton"):
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'math') 
+            f = sp.lambdify(x, f_expr, 'math')
             
-            # Automatically calculate the derivative using sympy
             f_prime_expr = sp.diff(f_expr, x)
             f_prime = sp.lambdify(x, f_prime_expr, 'math')
             
             st.info(f"Automatically calculated derivative: `{f_prime_expr}`")
             
-            k = 1 
-            current_a = a 
-            
+            k = 1
             with st.spinner("Calculating..."):
                 while k <= max_iter:
-                    if abs(f(current_a)) < tol:
-                        st.success(f"Root estimated at **x = {current_a:.6f}** after {k-1} iterations (tolerance met).")
+                    if abs(f(a)) < tol:
+                        st.success(f"Root estimated at **x = {a:.6f}** after {k-1} iterations.")
                         return
-
-                    f_prime_a = f_prime(current_a)
                     
+                    f_prime_a = f_prime(a)
                     if f_prime_a != 0:
-                        current_a = current_a - f(current_a) / f_prime_a
+                        a = a - f(a) / f_prime_a
                     else:
-                        st.error("Derivative f'(a) is zero. Terminating to avoid division by zero.")
-                        return 
-                        
+                        st.error("Derivative is zero. Terminating to avoid division by zero.")
+                        return
                     k += 1
-                    
-                st.warning(f"Maximum iterations ({max_iter}) reached. Best estimate of root: **{current_a:.6f}**")
-                
+                st.warning(f"Maximum iterations reached. Best estimate: **{a:.6f}**")
         except Exception as e:
             st.error(f"Invalid input or mathematical error: {e}")
-            st.info("Ensure you format your equation properly (e.g., use '2*x' instead of '2x').")
 
-# --- MAIN APP ROUTING ---
+# --- 2. MATRICES ---
 
-st.set_page_config(page_title="Program Calculator", layout="centered")
+def create_interactive_matrix(name, rows, cols):
+    st.write(f"**Matrix {name}**")
+    df = pd.DataFrame(np.zeros((rows, cols)))
+    return st.data_editor(df, key=f"matrix_{name}", num_rows="fixed")
 
-st.sidebar.title("🧮 Program Calculator")
+def matrix_ui(operation):
+    st.header(f"Matrix {operation.capitalize()}")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        r_a = st.number_input("Matrix A Rows", min_value=1, value=2, key="ra")
+        c_a = st.number_input("Matrix A Cols", min_value=1, value=2, key="ca")
+        df_A = create_interactive_matrix("A", r_a, c_a)
+    
+    with col2:
+        if operation in ["addition", "subtraction"]:
+            r_b, c_b = r_a, c_a
+            st.write(f"Matrix B Rows: {r_b} (Forced to match A)")
+            st.write(f"Matrix B Cols: {c_b} (Forced to match A)")
+        elif operation == "multiplication":
+            r_b = c_a
+            st.write(f"Matrix B Rows: {r_b} (Forced to match A cols)")
+            c_b = st.number_input("Matrix B Cols", min_value=1, value=2, key="cb")
+        elif operation == "division":
+            r_b = c_a
+            st.write(f"Matrix B Rows: {r_b} (Forced to match A cols)")
+            c_b = r_b
+            st.write(f"Matrix B Cols: {c_b} (Forced to be square)")
+            
+        df_B = create_interactive_matrix("B", r_b, c_b)
+
+    if st.button(f"Calculate {operation.capitalize()}"):
+        A = df_A.to_numpy()
+        B = df_B.to_numpy()
+        
+        try:
+            if operation == "addition":
+                C = A + B
+            elif operation == "subtraction":
+                C = A - B
+            elif operation == "multiplication":
+                C = np.dot(A, B)
+            elif operation == "division":
+                B_inv = np.linalg.inv(B)
+                C = np.dot(A, B_inv)
+                
+            st.success("Result:")
+            st.dataframe(pd.DataFrame(C))
+        except np.linalg.LinAlgError:
+            st.error("Matrix B is singular and cannot be inverted. Division impossible.")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# --- 3. APPROXIMATIONS ---
+
+def least_squares_ui():
+    st.header("Least Squares Approximation")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
+    with col2:
+        y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+        
+    degree = st.number_input("Polynomial Degree", min_value=1, value=1)
+    
+    if st.button("Calculate Least Squares"):
+        try:
+            x_vals = np.array([float(i.strip()) for i in x_input.split(',')])
+            y_vals = np.array([float(i.strip()) for i in y_input.split(',')])
+            
+            if len(x_vals) != len(y_vals):
+                st.error("X and Y must have the same number of data points.")
+                return
+            if degree >= len(x_vals):
+                st.warning("Warning: Fitting a polynomial of this degree may lead to overfitting.")
+                
+            coeffs = np.polyfit(x_vals, y_vals, degree)
+            
+            x_sym = sp.Symbol('x')
+            poly_expr = sum(c * x_sym**(degree - i) for i, c in enumerate(coeffs))
+            
+            st.success("Calculation Complete")
+            st.info(f"Function: `{poly_expr}`")
+            
+            predictions = np.polyval(coeffs, x_vals)
+            df = pd.DataFrame({'X': x_vals, 'Actual Y': y_vals, 'Predicted Y': predictions})
+            st.dataframe(df)
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+def cubic_splines_ui():
+    st.header("Cubic Splines")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
+    with col2:
+        y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+        
+    eval_x = st.number_input("Enter an 'x' value to estimate 'y'", value=2.5)
+    
+    if st.button("Calculate Spline"):
+        try:
+            x_vals = [float(i.strip()) for i in x_input.split(',')]
+            y_vals = [float(i.strip()) for i in y_input.split(',')]
+            
+            if len(x_vals) < 3:
+                st.error("At least 3 points are required.")
+                return
+                
+            # Sort data
+            sorted_pairs = sorted(zip(x_vals, y_vals))
+            x_sorted = np.array([p[0] for p in sorted_pairs])
+            y_sorted = np.array([p[1] for p in sorted_pairs])
+            
+            cs = CubicSpline(x_sorted, y_sorted, bc_type='not-a-knot')
+            result = cs(eval_x)
+            
+            st.success(f"Interpolated value: f({eval_x}) = **{result:.4f}**")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+def pca_ui():
+    st.header("Principal Component Analysis")
+    
+    r = st.number_input("Number of samples (rows)", min_value=2, value=4)
+    c = st.number_input("Number of features (columns)", min_value=1, value=3)
+    
+    df_data = create_interactive_matrix("Data", r, c)
+    
+    if st.button("Calculate PCA"):
+        try:
+            X = df_data.to_numpy()
+            
+            mu = np.mean(X, axis=0)
+            Xc = X - mu
+            C = np.cov(Xc, rowvar=False)
+            eigenvalues, V = np.linalg.eigh(C)
+            D = np.diag(eigenvalues)
+            Y = np.dot(Xc, V)
+            
+            st.write("**Centered Data:**")
+            st.dataframe(pd.DataFrame(Xc))
+            st.write("**Covariance Matrix:**")
+            st.dataframe(pd.DataFrame(C))
+            st.write("**Eigenvectors:**")
+            st.dataframe(pd.DataFrame(V))
+            st.write("**Eigenvalues:**")
+            st.dataframe(pd.DataFrame(D))
+            st.write("**Principal Components:**")
+            st.dataframe(pd.DataFrame(Y))
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# --- MAIN SIDEBAR ROUTING ---
+
+st.sidebar.title("🧮 Computational Science Toolkit")
 category = st.sidebar.selectbox(
-    "Select a Category", 
+    "Select Category", 
     ["Single Variable Equation", "System of Linear Equations", "Approximation"]
 )
 
 if category == "Single Variable Equation":
-    method = st.sidebar.radio(
-        "Select a Subfunction", 
-        ["Bisection", "Linear Interpolation", "The Method of Secants", "Newton's Method"]
-    )
-    
-    if method == "Bisection":
-        bisection_ui()
-    elif method == "Linear Interpolation":
-        linear_interpolation_ui()
-    elif method == "The Method of Secants":
-        method_of_secants_ui() 
-    elif method == "Newton's Method":
-        newtons_method_ui()   
+    method = st.sidebar.radio("Select Method", ["Bisection", "Linear Interpolation", "Method of Secants", "Newton's Method"])
+    if method == "Bisection": bisection_ui()
+    elif method == "Linear Interpolation": linear_interpolation_ui()
+    elif method == "Method of Secants": secants_ui()
+    elif method == "Newton's Method": newtons_ui()
 
 elif category == "System of Linear Equations":
-    method = st.sidebar.radio(
-        "Select a Subfunction", 
-        ["Addition", "Subtraction", "Multiplication", "Division"]
-    )
-    
-    st.header(f"Matrix {method}")
-    st.info("Computation code goes here...")
+    method = st.sidebar.radio("Select Method", ["Addition", "Subtraction", "Multiplication", "Division"])
+    matrix_ui(method.lower())
 
 elif category == "Approximation":
-    method = st.sidebar.radio(
-        "Select a Subfunction", 
-        ["Least Squares", "Cubic Splines", "Principal Component Analysis"]
-    )
-    
-    st.header(method)
-    st.info("Computation code goes here...")
+    method = st.sidebar.radio("Select Method", ["Least Squares", "Cubic Splines", "Principal Component Analysis"])
+    if method == "Least Squares": least_squares_ui()
+    elif method == "Cubic Splines": cubic_splines_ui()
+    elif method == "Principal Component Analysis": pca_ui()
