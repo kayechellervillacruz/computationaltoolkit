@@ -440,7 +440,7 @@ def pca_ui():
 
 # --- MAIN SIDEBAR ROUTING ---
 
-st.sidebar.title("🧮 Computational Science")
+st.sidebar.title("Computational Science")
 st.sidebar.markdown("Select a mathematical method from the dropdown below to begin.")
 category = st.sidebar.selectbox(
     "Category", 
