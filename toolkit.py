@@ -17,17 +17,21 @@ def sign(val):
 
 def bisection_ui():
     st.header("Bisection Method")
-    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        a = st.number_input("Lower bound (a)", value=0.0)
-        tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
-    with col2:
-        b = st.number_input("Upper bound (b)", value=5.0)
-        max_iter = st.number_input("Max iterations", value=50, step=1)
+    with st.form("bisection_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
         
-    if st.button("Calculate Bisection"):
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("Lower bound (a)", value=0.0)
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+        with col2:
+            b = st.number_input("Upper bound (b)", value=5.0)
+            max_iter = st.number_input("Max iterations", value=50, step=1)
+            
+        submitted = st.form_submit_button("Calculate Bisection")
+        
+    if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
@@ -62,17 +66,21 @@ def bisection_ui():
 
 def linear_interpolation_ui():
     st.header("Linear Interpolation")
-    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4", key="li_eq")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        a = st.number_input("Lower bound (a)", value=0.0, key="li_a")
-        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="li_tol")
-    with col2:
-        b = st.number_input("Upper bound (b)", value=5.0, key="li_b")
-        max_iter = st.number_input("Max iterations", value=50, step=1, key="li_max")
+    with st.form("linear_interp_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
         
-    if st.button("Calculate Interpolation"):
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("Lower bound (a)", value=0.0)
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+        with col2:
+            b = st.number_input("Upper bound (b)", value=5.0)
+            max_iter = st.number_input("Max iterations", value=50, step=1)
+            
+        submitted = st.form_submit_button("Calculate Interpolation")
+        
+    if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
@@ -114,17 +122,21 @@ def linear_interpolation_ui():
 
 def secants_ui():
     st.header("Method of Secants")
-    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4", key="sec_eq")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        a = st.number_input("First initial guess (a)", value=0.0, key="sec_a")
-        b = st.number_input("Second initial guess (b)", value=5.0, key="sec_b")
-    with col2:
-        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="sec_tol")
-        max_iter = st.number_input("Max iterations", value=50, step=1, key="sec_max")
+    with st.form("secants_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
         
-    if st.button("Calculate Secant"):
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("First initial guess (a)", value=0.0)
+            b = st.number_input("Second initial guess (b)", value=5.0)
+        with col2:
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+            max_iter = st.number_input("Max iterations", value=50, step=1)
+            
+        submitted = st.form_submit_button("Calculate Secant")
+        
+    if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
@@ -155,16 +167,20 @@ def secants_ui():
 
 def newtons_ui():
     st.header("Newton's Method")
-    eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4", key="newt_eq")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        a = st.number_input("Initial guess (a)", value=5.0, key="newt_a")
-        tol = st.number_input("Tolerance", value=0.0001, format="%.5f", key="newt_tol")
-    with col2:
-        max_iter = st.number_input("Max iterations", value=50, step=1, key="newt_max")
+    with st.form("newtons_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**2 - 4")
         
-    if st.button("Calculate Newton"):
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("Initial guess (a)", value=5.0)
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+        with col2:
+            max_iter = st.number_input("Max iterations", value=50, step=1)
+            
+        submitted = st.form_submit_button("Calculate Newton")
+        
+    if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
@@ -198,7 +214,8 @@ def newtons_ui():
 def create_interactive_matrix(name, rows, cols):
     st.write(f"**Matrix {name}**")
     df = pd.DataFrame(np.zeros((rows, cols)))
-    return st.data_editor(df, key=f"matrix_{name}", num_rows="fixed")
+    # Added dynamic key so Streamlit handles dimension changes perfectly
+    return st.data_editor(df, key=f"matrix_{name}_{rows}x{cols}", num_rows="fixed")
 
 def matrix_ui(operation):
     st.header(f"Matrix {operation.capitalize()}")
@@ -253,15 +270,17 @@ def matrix_ui(operation):
 def least_squares_ui():
     st.header("Least Squares Approximation")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
-    with col2:
-        y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+    with st.form("least_squares_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
+        with col2:
+            y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+            
+        degree = st.number_input("Polynomial Degree", min_value=1, value=1)
+        submitted = st.form_submit_button("Calculate Least Squares")
         
-    degree = st.number_input("Polynomial Degree", min_value=1, value=1)
-    
-    if st.button("Calculate Least Squares"):
+    if submitted:
         try:
             x_vals = np.array([float(i.strip()) for i in x_input.split(',')])
             y_vals = np.array([float(i.strip()) for i in y_input.split(',')])
@@ -290,15 +309,17 @@ def least_squares_ui():
 def cubic_splines_ui():
     st.header("Cubic Splines")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
-    with col2:
-        y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+    with st.form("cubic_splines_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
+        with col2:
+            y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
+            
+        eval_x = st.number_input("Enter an 'x' value to estimate 'y'", value=2.5)
+        submitted = st.form_submit_button("Calculate Spline")
         
-    eval_x = st.number_input("Enter an 'x' value to estimate 'y'", value=2.5)
-    
-    if st.button("Calculate Spline"):
+    if submitted:
         try:
             x_vals = [float(i.strip()) for i in x_input.split(',')]
             y_vals = [float(i.strip()) for i in y_input.split(',')]
@@ -307,7 +328,6 @@ def cubic_splines_ui():
                 st.error("At least 3 points are required.")
                 return
                 
-            # Sort data
             sorted_pairs = sorted(zip(x_vals, y_vals))
             x_sorted = np.array([p[0] for p in sorted_pairs])
             y_sorted = np.array([p[1] for p in sorted_pairs])
@@ -322,8 +342,12 @@ def cubic_splines_ui():
 def pca_ui():
     st.header("Principal Component Analysis")
     
-    r = st.number_input("Number of samples (rows)", min_value=2, value=4)
-    c = st.number_input("Number of features (columns)", min_value=1, value=3)
+    # Inputs placed cleanly in columns
+    col1, col2 = st.columns(2)
+    with col1:
+        r = st.number_input("Number of samples (rows)", min_value=2, value=4)
+    with col2:
+        c = st.number_input("Number of features (columns)", min_value=1, value=3)
     
     df_data = create_interactive_matrix("Data", r, c)
     
