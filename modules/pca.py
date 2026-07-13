@@ -1,3 +1,4 @@
+# modules/pca.py
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -5,29 +6,43 @@ from utils import format_matrix
 from modules.matrix import create_interactive_matrix
 
 def pca_ui():
-    col_in, col_out = st.columns([1, 1], gap="large")
+    st.header("Principal Component Analysis")
+    st.markdown("Analyze patterns in data dimensionality by extracting principal components.")
+    st.divider()
 
-    with col_in:
-        with st.container(border=True):
-            c1, c2 = st.columns(2)
-            with c1: r = st.number_input("Samples (Rows)", min_value=2, value=4)
-            with c2: c = st.number_input("Features (Cols)", min_value=1, value=3)
+    col1, col2 = st.columns(2)
+    with col1:
+        r = st.number_input("Number of samples (rows)", min_value=2, value=4)
+    with col2:
+        c = st.number_input("Number of features (columns)", min_value=1, value=3)
+    
+    # FIX: Added the 4th argument "pca" to uniquely identify these widgets
+    df_data = create_interactive_matrix("Data", r, c, "pca")
+    st.divider()
+
+    if st.button("Calculate PCA", type="primary"):
+        try:
+            X = df_data.to_numpy()
+            mu = np.mean(X, axis=0)
+            Xc = X - mu
+            C = np.cov(Xc, rowvar=False)
+            eigenvalues, V = np.linalg.eigh(C)
+            D = np.diag(eigenvalues)
+            Y = np.dot(Xc, V)
             
-            df_data = create_interactive_matrix("Data", r, c)
-            calc_btn = st.button("Calculate PCA", type="primary", use_container_width=True)
-
-    if calc_btn:
-        with col_out:
-            with st.container(border=True):
-                try:
-                    X = df_data.to_numpy()
-                    mu = np.mean(X, axis=0)
-                    Xc = X - mu
-                    C = np.cov(Xc, rowvar=False)
-                    eigenvalues, V = np.linalg.eigh(C)
-                    
-                    st.markdown("<span style='color:#8E8E8E'>Principal Components:</span>", unsafe_allow_html=True)
-                    st.dataframe(pd.DataFrame(format_matrix(np.dot(Xc, V))), use_container_width=True)
-                    st.success("PCA Calculated successfully.")
-                except Exception as e:
-                    st.error(f"Error: {e}")
+            st.subheader("Results")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write("**Centered Data:**")
+                st.dataframe(pd.DataFrame(format_matrix(Xc)), use_container_width=True)
+                st.write("**Covariance Matrix:**")
+                st.dataframe(pd.DataFrame(format_matrix(C)), use_container_width=True)
+                st.write("**Eigenvalues:**")
+                st.dataframe(pd.DataFrame(format_matrix(D)), use_container_width=True)
+            with col_b:
+                st.write("**Eigenvectors:**")
+                st.dataframe(pd.DataFrame(format_matrix(V)), use_container_width=True)
+                st.write("**Principal Components:**")
+                st.dataframe(pd.DataFrame(format_matrix(Y)), use_container_width=True)
+        except Exception as e:
+            st.error(f"Error: {e}")
