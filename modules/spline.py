@@ -26,7 +26,7 @@ def cubic_splines_ui():
     if submitted:
         with col_out:
             with st.container(border=True):
-                st.markdown("##### 📈 Results")
+                st.markdown("##### Results")
                 try:
                     x_vals = [float(i.strip()) for i in x_input.split(',')]
                     y_vals = [float(i.strip()) for i in y_input.split(',')]
