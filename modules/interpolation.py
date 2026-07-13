@@ -3,6 +3,10 @@ import sympy as sp
 from utils import sign, render_root_results
 
 def linear_interpolation_ui():
+    st.header("Linear Interpolation")
+    st.markdown("Estimate the root of a function using linear segments.")
+    st.divider()
+
     col_in, col_out = st.columns([1, 1], gap="large")
 
     with col_in:
