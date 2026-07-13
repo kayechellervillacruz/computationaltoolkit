@@ -13,61 +13,94 @@ st.markdown("""
     <style>
     /* Main background */
     .stApp {
-        background-color: #222222;
+        background-color: #0E0E0E; /* Very dark background */
         color: #FFFFFF;
     }
     /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #31322E;
+        background-color: #222222;
     }
     /* Sidebar Text */
     [data-testid="stSidebar"] * {
-        color: #FFFFFF !important;
+        color: #FFFFFF;
     }
-    /* Buttons */
-    .stButton > button {
+    /* Sidebar Buttons */
+    [data-testid="stSidebar"] .stButton > button {
         background-color: #d4ff00 !important;
-        color: #222222 !important;
+        color: #000000 !important;
         border: none !important;
         font-weight: bold !important;
+        border-radius: 20px !important; /* Pill shape for sidebar */
         width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 10px;
     }
     /* Primary Submit Button (Calculate) */
     [data-testid="baseButton-primary"] {
+        background-color: transparent !important;
+        color: #8E8E8E !important;
+        border: 1px solid #8E8E8E !important;
+        border-radius: 4px !important;
+        width: 100%;
+    }
+    [data-testid="baseButton-primary"]:hover {
         background-color: #d4ff00 !important;
-        color: #222222 !important;
+        color: #000000 !important;
+        border: 1px solid #d4ff00 !important;
     }
     /* Input backgrounds */
     .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #8E8E8E !important;
-        color: #222222 !important;
+        color: #000000 !important;
         border: none !important;
+        border-radius: 4px !important;
+    }
+    /* Input Disabled Backgrounds */
+    .stTextInput>div>div>input:disabled {
+        background-color: #666666 !important;
+        color: #CCCCCC !important;
     }
     /* Label Colors */
-    label {
+    label, .stTextInput label p, .stNumberInput label p {
         color: #8E8E8E !important;
+        font-family: monospace;
     }
-    /* Tabs */
+    /* Tabs Container */
     .stTabs [data-baseweb="tab-list"] {
-        background-color: #31322E;
-        border-radius: 4px;
-        padding: 5px;
+        background-color: transparent;
+        gap: 0px;
     }
-    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+    /* Tab Base Styling */
+    .stTabs [data-baseweb="tab"] {
+        background-color: #2A2A2A;
+        border-radius: 0px;
+        padding: 10px 20px;
+        border: 1px solid #1E1E1E;
+    }
+    .stTabs [data-baseweb="tab"] p {
         color: #8E8E8E;
-        font-size: 1.1rem;
+        font-family: monospace;
+        font-size: 1rem;
     }
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
-        background-color: #d4ff00;
-        border-radius: 4px;
+    /* Active Tab */
+    .stTabs [aria-selected="true"] {
+        background-color: #d4ff00 !important;
     }
-    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] [data-testid="stMarkdownContainer"] p {
-        color: #222222 !important;
+    .stTabs [aria-selected="true"] p {
+        color: #000000 !important;
         font-weight: bold;
     }
     /* Tab indicator line removal */
     .stTabs [data-baseweb="tab-highlight"] {
         display: none;
+    }
+    /* Container for forms/outputs to match the dark grey box */
+    [data-testid="stForm"], .css-1y4p8pa {
+        background-color: #2A2A2A;
+        padding: 20px;
+        border-radius: 0 0 8px 8px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -87,13 +120,12 @@ def format_matrix(matrix):
     return [[int(val) if float(val).is_integer() else round(float(val), 4) for val in row] for row in matrix]
 
 def render_results(col_out, eq_expr, root, f_val, iterations, status_msg, status_type="success"):
-    """Renders the output on the right column matching the image style."""
     with col_out:
-        st.markdown("<span style='color:#8E8E8E'>Interpreted Equation:</span>", unsafe_allow_html=True)
+        st.markdown("<span style='color:#8E8E8E; font-family:monospace;'>Interpreted Equation:</span>", unsafe_allow_html=True)
         if eq_expr:
             st.latex(f"f(x) = {sp.latex(eq_expr)}")
             
-        st.write("") # Spacer
+        st.write("") 
         
         res_col1, res_col2 = st.columns(2)
         with res_col1:
@@ -102,7 +134,7 @@ def render_results(col_out, eq_expr, root, f_val, iterations, status_msg, status
         with res_col2:
             st.text_input("f(x) at Root", value=format_res(f_val) if f_val is not None else "", disabled=True)
             
-        st.write("") # Spacer
+        st.write("") 
         if status_type == "success":
             st.success(status_msg)
         elif status_type == "warning":
@@ -125,7 +157,7 @@ def bisection_ui():
                 tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
             with c2:
                 b = st.number_input("Upper bound (b)", value=1.0)
-                max_iter = st.number_input("Max iterations", value=50, step=1)
+                max_iter = st.number_input("Iterations", value=50, step=1)
                 
             submitted = st.form_submit_button("Calculate Root", type="primary")
             
@@ -174,7 +206,7 @@ def linear_interpolation_ui():
                 tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
             with c2:
                 b = st.number_input("Upper bound (b)", value=1.0)
-                max_iter = st.number_input("Max iterations", value=50, step=1)
+                max_iter = st.number_input("Iterations", value=50, step=1)
                 
             submitted = st.form_submit_button("Calculate Root", type="primary")
             
@@ -229,7 +261,7 @@ def secants_ui():
                 b = st.number_input("Second initial guess (b)", value=1.0)
             with c2:
                 tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
-                max_iter = st.number_input("Max iterations", value=50, step=1)
+                max_iter = st.number_input("Iterations", value=50, step=1)
                 
             submitted = st.form_submit_button("Calculate Root", type="primary")
             
@@ -275,7 +307,7 @@ def newtons_ui():
                 a = st.number_input("Initial guess (a)", value=1.0)
                 tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
             with c2:
-                max_iter = st.number_input("Max iterations", value=50, step=1)
+                max_iter = st.number_input("Iterations", value=50, step=1)
                 
             submitted = st.form_submit_button("Calculate Root", type="primary")
             
@@ -541,11 +573,18 @@ if "main_category" not in st.session_state:
 
 # --- SIDEBAR ---
 with st.sidebar:
-    try:
-        st.image("ComputationalLOGO.png", use_container_width=True)
-    except:
-        st.markdown("<h2 style='color: white; margin-top:0;'>Computational<br><span style='color: #d4ff00;'>Toolkit</span></h2>", unsafe_allow_html=True)
+    # Adding the specific logo logic based on the image structure
+    col_logo, col_text = st.columns([1, 4])
+    with col_logo:
+        try:
+            st.image("ComputationalLOGO.png", use_column_width=True)
+        except:
+            st.markdown("🌊") # Fallback icon
+            
+    with col_text:
+        st.markdown("<h3 style='color: white; margin-top: 0; padding-top: 0; font-family: monospace; font-size: 1.1rem;'>Computational<br><span style='color: #d4ff00;'>Toolkit</span></h3>", unsafe_allow_html=True)
     
+    st.write("") # Spacer
     st.write("") # Spacer
     
     if st.button("Single Variable Equation"): st.session_state.main_category = "Single Variable Equation"
@@ -553,7 +592,6 @@ with st.sidebar:
     if st.button("Approximation"): st.session_state.main_category = "Approximation"
 
 # --- MAIN AREA ---
-
 if st.session_state.main_category == "Single Variable Equation":
     tabs = st.tabs(["Bisection", "Linear Interpolation", "Method of Secants", "Newton's Method"])
     with tabs[0]: bisection_ui()
