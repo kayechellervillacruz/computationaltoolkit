@@ -2,8 +2,6 @@
 <img width="1787" height="820" alt="image" src="https://github.com/user-attachments/assets/57d5aa40-7054-4526-93df-925596ae8cf7" />
 
 
-Here is the updated `README.md` with your notes and documentation link included. I have kept the professional tone while ensuring your message about the development timeline and future plans is clearly communicated.
-
 ---
 
 # Computational Science Toolkit
