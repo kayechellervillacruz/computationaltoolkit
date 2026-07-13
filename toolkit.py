@@ -8,119 +8,6 @@ import re
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Computational Science Toolkit", page_icon="🧮", layout="wide")
 
-# --- CUSTOM CSS THEME INJECTION ---
-st.markdown("""
-    <style>
-    /* Main Background */
-    .stApp {
-        background-color: #121212; 
-        color: #FFFFFF;
-    }
-    
-    /* Sidebar Background */
-    [data-testid="stSidebar"] {
-        background-color: #222222;
-        border-right: 1px solid #333333;
-    }
-    
-    /* Sidebar Text */
-    [data-testid="stSidebar"] * {
-        color: #FFFFFF;
-    }
-    
-    /* === BUTTON STYLING === */
-    /* Sidebar Buttons */
-    [data-testid="stSidebar"] .stButton > button {
-        background-color: #d4ff00 !important;
-        color: #000000 !important;
-        border: none !important;
-        font-weight: 800 !important;
-        border-radius: 20px !important; /* Pill shape */
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 8px;
-        transition: transform 0.1s ease-in-out;
-    }
-    [data-testid="stSidebar"] .stButton > button:active {
-        transform: scale(0.98);
-    }
-
-    /* Primary Submit Button (Calculate) */
-    [data-testid="baseButton-primary"] {
-        background-color: #d4ff00 !important;
-        color: #000000 !important;
-        border: none !important;
-        font-weight: 800 !important;
-        border-radius: 6px !important;
-        width: 100%;
-        padding: 10px;
-        transition: transform 0.1s ease-in-out;
-    }
-    [data-testid="baseButton-primary"]:active {
-        transform: scale(0.98);
-    }
-    
-    /* === INPUT STYLING === */
-    .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #7A7A7A !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        border-radius: 4px !important;
-    }
-    
-    /* Input Disabled Backgrounds */
-    .stTextInput>div>div>input:disabled {
-        background-color: #555555 !important;
-        color: #DDDDDD !important;
-    }
-    
-    /* Label Colors */
-    label, .stTextInput label p, .stNumberInput label p {
-        color: #AAAAAA !important;
-        font-family: monospace;
-        font-size: 0.9rem !important;
-    }
-    
-    /* === TAB STYLING === */
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: transparent;
-        gap: 0px;
-        border-bottom: 1px solid #333333;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #222222;
-        border-radius: 0px;
-        padding: 12px 24px;
-        border: 1px solid #1E1E1E;
-        border-bottom: none;
-    }
-    .stTabs [data-baseweb="tab"] p {
-        color: #8E8E8E;
-        font-family: monospace;
-        font-size: 1rem;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #d4ff00 !important;
-    }
-    .stTabs [aria-selected="true"] p {
-        color: #000000 !important;
-        font-weight: 900;
-    }
-    .stTabs [data-baseweb="tab-highlight"] {
-        display: none;
-    }
-    
-    /* === FORM CONTAINER === */
-    [data-testid="stForm"] {
-        background-color: #262626;
-        padding: 25px;
-        border-radius: 0 0 8px 8px;
-        border: 1px solid #333333;
-        border-top: none;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # --- HELPER FUNCTIONS ---
 def sign(val):
     if val > 0: return 1
@@ -128,542 +15,553 @@ def sign(val):
     else: return 0
 
 def format_res(val):
-    if val is None: return ""
+    """Formats values: integers drop decimal places, floats are rounded to 4 decimals."""
     if float(val).is_integer():
         return f"{int(val)}"
-    return f"{float(val):.6f}"
+    return f"{float(val):.4f}"
 
 def format_matrix(matrix):
-    return [[int(val) if float(val).is_integer() else round(float(val), 6) for val in row] for row in matrix]
+    """Formats a 2D array: integers drop decimals, floats rounded to 4 decimals."""
+    return [[int(val) if float(val).is_integer() else round(float(val), 4) for val in row] for row in matrix]
 
-def render_results(col_out, eq_expr, root, f_val, iterations, status_msg, status_type="success"):
-    with col_out:
-        st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Interpreted Equation:</span>", unsafe_allow_html=True)
-        if eq_expr:
-            st.latex(f"f(x) = {sp.latex(eq_expr)}")
-            
-        st.write("") 
+def display_results_dashboard(root, f_val, iterations, status_msg, status_type="success"):
+    """Creates a clean, unified dashboard for single variable results."""
+    st.divider()
+    st.subheader("📊 Calculation Results")
+    
+    if status_type == "success":
+        st.success(status_msg)
+    else:
+        st.warning(status_msg)
         
-        res_col1, res_col2 = st.columns(2)
-        with res_col1:
-            st.text_input("Estimated Root", value=format_res(root), disabled=True)
-            st.text_input("Iterations Used", value=str(iterations) if iterations is not None else "", disabled=True)
-        with res_col2:
-            st.text_input("f(x) at Root", value=format_res(f_val), disabled=True)
-            
-        st.write("") 
-        if status_type == "success":
-            st.success(status_msg)
-        elif status_type == "warning":
-            st.warning(status_msg)
-        elif status_type == "error":
-            st.error(status_msg)
+    res_col1, res_col2, res_col3 = st.columns(3)
+    res_col1.metric("Estimated Root (x)", format_res(root))
+    res_col2.metric("f(x) at Root", format_res(f_val))
+    res_col3.metric("Iterations Used", str(iterations))
 
 # --- 1. SINGLE VARIABLE EQUATIONS ---
 
 def bisection_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Bisection Method")
+    st.markdown("Find the root of a function by repeatedly bisecting an interval.")
+    st.divider()
     
-    with col_in:
-        with st.form("bisection_form"):
-            eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+    with st.form("bisection_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("Lower bound (a)", value=0.0)
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+        with col2:
+            b = st.number_input("Upper bound (b)", value=1.0)
+            max_iter = st.number_input("Max iterations", value=50, step=1)
             
-            c1, c2 = st.columns(2)
-            with c1:
-                a = st.number_input("Lower bound (a)", value=0.0)
-                tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
-            with c2:
-                b = st.number_input("Upper bound (b)", value=1.0)
-                max_iter = st.number_input("Iterations", value=50, step=1, min_value=1)
-                
-            submitted = st.form_submit_button("Calculate Root", type="primary")
-            
+        submitted = st.form_submit_button("Calculate Root", type="primary")
+        
     if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'numpy')
+            f = sp.lambdify(x, f_expr, 'math')
             
-            val_a, val_b = float(f(a)), float(f(b))
+            st.markdown("**Interpreted Equation:**")
+            st.latex(f"f(x) = {sp.latex(f_expr)}")
             
-            if val_a * val_b > 0:
-                render_results(col_out, f_expr, None, None, None, "Error: f(a) and f(b) must have opposite signs. Try different bounds.", "error")
+            if f(a) * f(b) > 0:
+                st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
                 return
 
             k = 1
             x_hat = a
-            while k <= max_iter:
-                x_hat = (a + b) / 2.0
-                val_x_hat = float(f(x_hat))
-                
-                if abs(b - a) / 2.0 < tol or val_x_hat == 0:
-                    render_results(col_out, f_expr, x_hat, val_x_hat, k, f"Root found within tolerance after {k} iterations.", "success")
-                    break
-                
-                if sign(val_x_hat) == sign(val_a):
-                    a = x_hat
-                    val_a = val_x_hat
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    x_hat = (a + b) / 2.0
+                    if abs(b - a) / 2.0 < tol:
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Tolerance met after {k} iterations.")
+                        break
+                    
+                    if sign(f(x_hat)) == sign(f(a)):
+                        a = x_hat
+                    elif sign(f(x_hat)) == sign(f(b)):
+                        b = x_hat
+                    elif sign(f(x_hat)) == 0:
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Exact root found after {k} iterations.")
+                        break
+                    else:
+                        st.error("Unexpected error during sign evaluation.")
+                        return
+                    
+                    k += 1
                 else:
-                    b = x_hat
-                k += 1
-            else:
-                render_results(col_out, f_expr, x_hat, float(f(x_hat)), max_iter, "Maximum iterations reached before meeting tolerance.", "warning")
+                    display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
                 
         except Exception as e:
-            render_results(col_out, None, None, None, None, f"Calculation Error: Check your equation syntax. ({e})", "error")
+            st.error(f"Invalid input or mathematical error: {e}")
 
 def linear_interpolation_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Linear Interpolation")
+    st.markdown("Estimate the root of a function using linear segments.")
+    st.divider()
 
-    with col_in:
-        with st.form("linear_interp_form"):
-            eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+    with st.form("linear_interp_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - x")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("Lower bound (a)", value=0.0)
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+        with col2:
+            b = st.number_input("Upper bound (b)", value=1.0)
+            max_iter = st.number_input("Max iterations", value=50, step=1)
             
-            c1, c2 = st.columns(2)
-            with c1:
-                a = st.number_input("Lower bound (a)", value=0.0)
-                tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
-            with c2:
-                b = st.number_input("Upper bound (b)", value=1.0)
-                max_iter = st.number_input("Iterations", value=50, step=1, min_value=1)
-                
-            submitted = st.form_submit_button("Calculate Root", type="primary")
-            
+        submitted = st.form_submit_button("Calculate Root", type="primary")
+        
     if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'numpy')
+            f = sp.lambdify(x, f_expr, 'math')
             
-            val_a, val_b = float(f(a)), float(f(b))
+            st.markdown("**Interpreted Equation:**")
+            st.latex(f"f(x) = {sp.latex(f_expr)}")
             
-            if val_a * val_b > 0:
-                render_results(col_out, f_expr, None, None, None, "Error: f(a) and f(b) must have opposite signs.", "error")
+            if f(a) * f(b) > 0:
+                st.error("The function must have opposite signs at the bounds 'a' and 'b'.")
                 return
 
             k = 1
             x_hat = a
-            while k <= max_iter:
-                val_a = float(f(a))
-                val_b = float(f(b))
-                
-                if val_a - val_b == 0:
-                    render_results(col_out, f_expr, None, None, None, "Division by zero detected (f(a) == f(b)).", "error")
-                    return
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    f_a = f(a)
+                    f_b = f(b)
+                    if f_a - f_b == 0:
+                        st.error("Division by zero detected. Terminating.")
+                        return
+                        
+                    x_hat = a - f_a * (a - b) / (f_a - f_b)
                     
-                x_hat = a - val_a * (a - b) / (val_a - val_b)
-                val_x_hat = float(f(x_hat))
-                
-                if abs(val_x_hat) < tol:
-                    render_results(col_out, f_expr, x_hat, val_x_hat, k, f"Tolerance met after {k} iterations.", "success")
-                    break
-                    
-                if sign(val_x_hat) == 0:
-                    render_results(col_out, f_expr, x_hat, val_x_hat, k, f"Exact root found after {k} iterations.", "success")
-                    break
-                elif sign(val_x_hat) == sign(val_a):
-                    a = x_hat
+                    if abs(f(x_hat)) < tol:
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Tolerance met after {k} iterations.")
+                        break
+                    if sign(f(x_hat)) == 0:
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Exact root found after {k} iterations.")
+                        break
+                    elif sign(f(x_hat)) == sign(f(a)):
+                        a = x_hat
+                    elif sign(f(x_hat)) == sign(f(b)):
+                        b = x_hat
+                    k += 1
                 else:
-                    b = x_hat
-                k += 1
-            else:
-                render_results(col_out, f_expr, x_hat, float(f(x_hat)), max_iter, "Maximum iterations reached.", "warning")
-                
+                    display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
+                    
         except Exception as e:
-            render_results(col_out, None, None, None, None, f"Calculation Error: {e}", "error")
+            st.error(f"Invalid input or mathematical error: {e}")
 
 def secants_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Method of Secants")
+    st.markdown("Find the root utilizing secant lines through sequential estimates.")
+    st.divider()
 
-    with col_in:
-        with st.form("secants_form"):
-            eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+    with st.form("secants_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - x")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("First initial guess (a)", value=0.0)
+            b = st.number_input("Second initial guess (b)", value=1.0)
+        with col2:
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+            max_iter = st.number_input("Max iterations", value=50, step=1)
             
-            c1, c2 = st.columns(2)
-            with c1:
-                a = st.number_input("First initial guess (a)", value=0.0)
-                b = st.number_input("Second initial guess (b)", value=1.0)
-            with c2:
-                tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
-                max_iter = st.number_input("Iterations", value=50, step=1, min_value=1)
-                
-            submitted = st.form_submit_button("Calculate Root", type="primary")
-            
+        submitted = st.form_submit_button("Calculate Root", type="primary")
+        
     if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'numpy')
+            f = sp.lambdify(x, f_expr, 'math')
+            
+            st.markdown("**Interpreted Equation:**")
+            st.latex(f"f(x) = {sp.latex(f_expr)}")
             
             k = 1
             x_hat = b
-            while k <= max_iter:
-                val_a = float(f(a))
-                val_b = float(f(b))
-                
-                if val_b == val_a:
-                    render_results(col_out, f_expr, None, None, None, "f(b) == f(a). Division by zero detected.", "error")
-                    return
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    f_a = f(a)
+                    f_b = f(b)
+                    if f_b == f_a:
+                        st.error("f(b) == f(a). Division by zero detected.")
+                        return
+                        
+                    x_hat = a - f_a * (a - b) / (f_a - f_b)
                     
-                x_hat = a - val_a * (a - b) / (val_a - val_b)
-                val_x_hat = float(f(x_hat))
-                
-                if abs(val_x_hat) < tol:
-                    render_results(col_out, f_expr, x_hat, val_x_hat, k, f"Tolerance met after {k} iterations.", "success")
-                    break
-                
-                a = b
-                b = x_hat
-                k += 1
-            else:
-                render_results(col_out, f_expr, x_hat, float(f(x_hat)), max_iter, "Maximum iterations reached.", "warning")
-                
+                    if abs(f(x_hat)) < tol:
+                        display_results_dashboard(x_hat, f(x_hat), k, f"Tolerance met after {k} iterations.")
+                        break
+                    
+                    a = b
+                    b = x_hat
+                    k += 1
+                else:
+                    display_results_dashboard(x_hat, f(x_hat), max_iter, "Maximum iterations reached.", "warning")
+                    
         except Exception as e:
-            render_results(col_out, None, None, None, None, f"Calculation Error: {e}", "error")
+            st.error(f"Invalid input or mathematical error: {e}")
 
 def newtons_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Newton's Method")
+    st.markdown("Utilize the derivative of a function to rapidly converge on a root.")
+    st.divider()
 
-    with col_in:
-        with st.form("newtons_form"):
-            eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+    with st.form("newtons_form"):
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - x")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            a = st.number_input("Initial guess (a)", value=1.0)
+            tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
+        with col2:
+            max_iter = st.number_input("Max iterations", value=50, step=1)
             
-            c1, c2 = st.columns(2)
-            with c1:
-                a = st.number_input("Initial guess (a)", value=1.0)
-                tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
-            with c2:
-                max_iter = st.number_input("Iterations", value=50, step=1, min_value=1)
-                
-            submitted = st.form_submit_button("Calculate Root", type="primary")
-            
+        submitted = st.form_submit_button("Calculate Root", type="primary")
+        
     if submitted:
         try:
             x = sp.Symbol('x')
             f_expr = sp.sympify(eq_str)
-            f = sp.lambdify(x, f_expr, 'numpy')
+            f = sp.lambdify(x, f_expr, 'math')
             
             f_prime_expr = sp.diff(f_expr, x)
-            f_prime = sp.lambdify(x, f_prime_expr, 'numpy')
+            f_prime = sp.lambdify(x, f_prime_expr, 'math')
+            
+            col_eq1, col_eq2 = st.columns(2)
+            with col_eq1:
+                st.markdown("**Interpreted Equation:**")
+                st.latex(f"f(x) = {sp.latex(f_expr)}")
+            with col_eq2:
+                st.markdown("**Calculated Derivative:**")
+                st.latex(f"f'(x) = {sp.latex(f_prime_expr)}")
             
             k = 1
-            while k <= max_iter:
-                val_a = float(f(a))
-                if abs(val_a) < tol:
-                    render_results(col_out, f_expr, a, val_a, k-1, f"Tolerance met after {k-1} iterations.", "success")
-                    break
-                
-                f_prime_a = float(f_prime(a))
-                if f_prime_a != 0:
-                    a = a - val_a / f_prime_a
+            with st.spinner("Calculating..."):
+                while k <= max_iter:
+                    if abs(f(a)) < tol:
+                        display_results_dashboard(a, f(a), k-1, f"Tolerance met after {k-1} iterations.")
+                        break
+                    
+                    f_prime_a = f_prime(a)
+                    if f_prime_a != 0:
+                        a = a - f(a) / f_prime_a
+                    else:
+                        st.error("Derivative is zero. Terminating to avoid division by zero.")
+                        return
+                    k += 1
                 else:
-                    render_results(col_out, f_expr, None, None, None, "Derivative is zero. Terminating to avoid division by zero.", "error")
-                    return
-                k += 1
-            else:
-                render_results(col_out, f_expr, a, float(f(a)), max_iter, "Maximum iterations reached.", "warning")
-                
+                    display_results_dashboard(a, f(a), max_iter, "Maximum iterations reached.", "warning")
+                    
         except Exception as e:
-            render_results(col_out, None, None, None, None, f"Calculation Error: Make sure syntax is valid. ({e})", "error")
+            st.error(f"Invalid input or mathematical error: {e}")
 
 # --- 2. MATRICES ---
 
 def create_interactive_matrix(name, rows, cols):
-    st.markdown(f"<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Matrix {name}</span>", unsafe_allow_html=True)
+    st.write(f"**Matrix {name}**")
     df = pd.DataFrame(np.zeros((rows, cols)))
     return st.data_editor(df, key=f"matrix_{name}_{rows}x{cols}", num_rows="fixed")
 
 def matrix_ui(operation):
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header(f"Matrix {operation.capitalize()}")
+    st.markdown("Perform linear algebra operations on dynamically scaled matrices.")
+    st.divider()
 
-    with col_in:
-        c1, c2 = st.columns(2)
-        with c1:
-            r_a = st.number_input("Matrix A Rows", min_value=1, value=2, key="ra")
-            c_a = st.number_input("Matrix A Cols", min_value=1, value=2, key="ca")
-            df_A = create_interactive_matrix("A", r_a, c_a)
+    col1, col2 = st.columns(2)
+    with col1:
+        r_a = st.number_input("Matrix A Rows", min_value=1, value=2, key="ra")
+        c_a = st.number_input("Matrix A Cols", min_value=1, value=2, key="ca")
+        df_A = create_interactive_matrix("A", r_a, c_a)
+    
+    with col2:
+        if operation in ["addition", "subtraction"]:
+            r_b, c_b = r_a, c_a
+            st.write(f"Matrix B Rows: {r_b} *(Forced to match A)*")
+            st.write(f"Matrix B Cols: {c_b} *(Forced to match A)*")
+        elif operation == "multiplication":
+            r_b = c_a
+            st.write(f"Matrix B Rows: {r_b} *(Forced to match A cols)*")
+            c_b = st.number_input("Matrix B Cols", min_value=1, value=2, key="cb")
+            
+        df_B = create_interactive_matrix("B", r_b, c_b)
+
+    st.divider()
+    if st.button(f"Calculate {operation.capitalize()}", type="primary"):
+        A = df_A.to_numpy()
+        B = df_B.to_numpy()
         
-        with c2:
-            if operation in ["addition", "subtraction"]:
-                r_b, c_b = r_a, c_a
-                st.text_input("Matrix B Rows", value=r_b, disabled=True)
-                st.text_input("Matrix B Cols", value=c_b, disabled=True)
+        try:
+            if operation == "addition":
+                C = A + B
+            elif operation == "subtraction":
+                C = A - B
             elif operation == "multiplication":
-                r_b = c_a
-                st.text_input("Matrix B Rows", value=r_b, disabled=True)
-                c_b = st.number_input("Matrix B Cols", min_value=1, value=2, key="cb")
+                C = np.dot(A, B)
                 
-            df_B = create_interactive_matrix("B", r_b, c_b)
-
-        calc_btn = st.button(f"Calculate {operation.capitalize()}", type="primary")
-
-    with col_out:
-        st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Resulting Matrix:</span>", unsafe_allow_html=True)
-        if calc_btn:
-            try:
-                # Force matrices to be floats (handles accidental string inputs from the data editor)
-                A = df_A.astype(float).to_numpy()
-                B = df_B.astype(float).to_numpy()
-                
-                if operation == "addition": C = A + B
-                elif operation == "subtraction": C = A - B
-                elif operation == "multiplication": C = np.dot(A, B)
-                
-                st.dataframe(pd.DataFrame(format_matrix(C)), use_container_width=True)
-                st.success("Matrix computed successfully.")
-            except Exception as e:
-                st.error(f"Error computing matrix. Ensure all cells contain valid numbers. ({e})")
+            st.success("Resulting matrix:")
+            st.dataframe(pd.DataFrame(format_matrix(C)), use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error computing matrix: {e}")
 
 def gaussian_elimination_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Gaussian Elimination")
+    st.markdown("Solve a system of linear equations using partial pivoting and back substitution.")
+    st.divider()
 
-    with col_in:
-        with st.form("gaussian_form"):
-            st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Enter equations (e.g., 2x + y = 5)</span>", unsafe_allow_html=True)
-            eq_input = st.text_area("", value="2*x + y = 5\nx - y = 1", height=150, label_visibility="collapsed")
-            submitted = st.form_submit_button("Solve System", type="primary")
+    with st.form("gaussian_form"):
+        st.info("Enter your equations below, one per line. Example: `2x + y = 5`")
+        eq_input = st.text_area("Linear Equations", value="2x + y = 5\nx - y = 1", height=150)
+        submitted = st.form_submit_button("Solve System", type="primary")
 
-    with col_out:
-        if submitted:
-            try:
-                raw_lines = [line.strip() for line in eq_input.split('\n') if line.strip()]
-                num_eq = len(raw_lines)
+    if submitted:
+        try:
+            raw_lines = [line.strip() for line in eq_input.split('\n') if line.strip()]
+            num_eq = len(raw_lines)
+            
+            if num_eq <= 0:
+                st.error("Please enter at least one equation.")
+                return
+            
+            equations = []
+            for eq_str in raw_lines:
+                # Automatically add '*' between numbers and variables (e.g., '2x' becomes '2*x')
+                eq_str = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', eq_str)
                 
-                if num_eq <= 0:
-                    st.error("Please enter at least one equation.")
+                if '=' in eq_str:
+                    lhs, rhs = eq_str.split('=', 1)
+                    expr_str = f"({lhs}) - ({rhs})"
+                else:
+                    expr_str = eq_str
+                    
+                expr = sp.sympify(expr_str)
+                equations.append(expr)
+                
+            symbols = set()
+            for eq in equations:
+                symbols.update(eq.free_symbols)
+            symbols = sorted(list(symbols), key=lambda s: s.name)
+            
+            if not symbols:
+                st.error("No variables found in the equations.")
+                return
+                
+            if len(symbols) != num_eq:
+                st.error(f"Gaussian Elimination requires a square system (variables must equal equations). Found {len(symbols)} variables and {num_eq} equations.")
+                return
+                
+            A_sp, b_sp = sp.linear_eq_to_matrix(equations, *symbols)
+            A = np.array(A_sp).astype(float)
+            b = np.array(b_sp).astype(float).flatten()
+            n = len(b)
+            
+            augmented_matrix = np.column_stack((A, b))
+            
+            st.subheader("Calculation Steps")
+            st.write(f"**Detected Variables:** {', '.join(str(s) for s in symbols)}")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Initial Augmented Matrix:**")
+                st.dataframe(pd.DataFrame(format_matrix(augmented_matrix)), use_container_width=True)
+            
+            # Forward Elimination
+            for i in range(n):
+                max_row = i + np.argmax(np.abs(augmented_matrix[i:n, i]))
+                if augmented_matrix[max_row, i] == 0:
+                    st.error("System is singular or does not have a unique solution.")
                     return
-                
-                equations = []
-                for eq_str in raw_lines:
-                    # Robust substitution to convert implicit multiplication like '2x' to '2*x' safely
-                    eq_str = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', eq_str)
-                    if '=' in eq_str:
-                        lhs, rhs = eq_str.split('=', 1)
-                        expr_str = f"({lhs}) - ({rhs})"
-                    else:
-                        expr_str = eq_str
-                    equations.append(sp.sympify(expr_str))
                     
-                symbols = set()
-                for eq in equations:
-                    symbols.update(eq.free_symbols)
-                symbols = sorted(list(symbols), key=lambda s: s.name)
+                augmented_matrix[[i, max_row]] = augmented_matrix[[max_row, i]]
                 
-                if len(symbols) != num_eq:
-                    st.error(f"System must be square. Found {len(symbols)} unique variables and {num_eq} equations.")
-                    return
+                for j in range(i + 1, n):
+                    factor = augmented_matrix[j, i] / augmented_matrix[i, i]
+                    augmented_matrix[j, i:] = augmented_matrix[j, i:] - factor * augmented_matrix[i, i:]
                     
-                A_sp, b_sp = sp.linear_eq_to_matrix(equations, *symbols)
-                A = np.array(A_sp).astype(float)
-                b = np.array(b_sp).astype(float).flatten()
-                n = len(b)
+            with col2:
+                st.write("**Upper Triangular Matrix (Row Echelon Form):**")
+                st.dataframe(pd.DataFrame(format_matrix(augmented_matrix)), use_container_width=True)
                 
-                augmented_matrix = np.column_stack((A, b))
+            # Back Substitution
+            x = np.zeros(n)
+            for i in range(n - 1, -1, -1):
+                x[i] = (augmented_matrix[i, -1] - np.dot(augmented_matrix[i, i+1:n], x[i+1:n])) / augmented_matrix[i, i]
                 
-                # Gaussian Elimination logic with partial pivoting
-                for i in range(n):
-                    max_row = i + np.argmax(np.abs(augmented_matrix[i:n, i]))
-                    if augmented_matrix[max_row, i] == 0:
-                        st.error("System is singular or has infinite solutions.")
-                        return
-                    augmented_matrix[[i, max_row]] = augmented_matrix[[max_row, i]]
-                    for j in range(i + 1, n):
-                        factor = augmented_matrix[j, i] / augmented_matrix[i, i]
-                        augmented_matrix[j, i:] = augmented_matrix[j, i:] - factor * augmented_matrix[i, i:]
-                        
-                # Back substitution
-                x = np.zeros(n)
-                for i in range(n - 1, -1, -1):
-                    x[i] = (augmented_matrix[i, -1] - np.dot(augmented_matrix[i, i+1:n], x[i+1:n])) / augmented_matrix[i, i]
-                    
-                st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Solutions:</span>", unsafe_allow_html=True)
-                res_cols = st.columns(len(symbols))
-                for idx, (var, sol) in enumerate(zip(symbols, x)):
-                    with res_cols[idx % len(res_cols)]:
-                        st.text_input(f"Variable {var}", value=format_res(sol), disabled=True)
-                st.success("System solved via Gaussian Elimination.")
-                    
-            except Exception as e:
-                st.error(f"Parse or Math Error: {e}. Ensure variables match and equations use proper formatting (e.g., '2*x + y = 5').")
+            st.divider()
+            st.subheader("Final Results")
+            res_cols = st.columns(len(symbols))
+            for idx, (var, sol) in enumerate(zip(symbols, x)):
+                res_cols[idx % len(res_cols)].metric(f"Variable: {var}", format_res(sol))
+                
+        except Exception as e:
+            st.error(f"Invalid mathematical syntax or error: {e}")
 
 # --- 3. APPROXIMATIONS ---
 
 def least_squares_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Least Squares Approximation")
+    st.markdown("Fit a polynomial curve to a set of coordinate data.")
+    st.divider()
 
-    with col_in:
-        with st.form("least_squares_form"):
-            c1, c2 = st.columns(2)
-            with c1:
-                x_input = st.text_input("X values (comma-separated)", value="-2, -1, 0, 1, 2, 3")
-            with c2:
-                y_input = st.text_input("Y values (comma-separated)", value="2, 2, 1, 0, 0, 3")
-                
-            degree = st.number_input("Polynomial Degree", min_value=1, value=2, step=1)
-            submitted = st.form_submit_button("Calculate Least Squares", type="primary")
+    with st.form("least_squares_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            x_input = st.text_input("Enter X values (comma-separated)", value="-2, -1, 0, 1, 2, 3")
+        with col2:
+            y_input = st.text_input("Enter Y values (comma-separated)", value="2, 2, 1, 0, 0, 3")
             
-    with col_out:
-        if submitted:
-            try:
-                x_vals = np.array([float(i.strip()) for i in x_input.split(',') if i.strip()])
-                y_vals = np.array([float(i.strip()) for i in y_input.split(',') if i.strip()])
+        degree = st.number_input("Polynomial Degree", min_value=1, value=2)
+        submitted = st.form_submit_button("Calculate Least Squares", type="primary")
+        
+    if submitted:
+        try:
+            x_vals = np.array([float(i.strip()) for i in x_input.split(',')])
+            y_vals = np.array([float(i.strip()) for i in y_input.split(',')])
+            
+            if len(x_vals) != len(y_vals):
+                st.error("X and Y must have the same number of data points.")
+                return
+            if degree >= len(x_vals):
+                st.warning("Warning: Fitting a polynomial of this degree may lead to overfitting.")
                 
-                if len(x_vals) != len(y_vals):
-                    st.error("X and Y inputs must have the exact same number of data points.")
-                    return
-                if len(x_vals) <= degree:
-                    st.warning(f"Warning: A polynomial of degree {degree} requires at least {degree + 1} points to fit perfectly without overfitting.")
-                    
-                coeffs = np.polyfit(x_vals, y_vals, degree)
-                x_sym = sp.Symbol('x')
-                
-                # Construct polynomial string for SymPy cleanly
-                poly_expr = sum(c * (x_sym ** (degree - i)) for i, c in enumerate(coeffs))
-                
-                st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Fitted Polynomial Equation:</span>", unsafe_allow_html=True)
-                st.latex(f"f(x) = {sp.latex(poly_expr)}")
-                st.write("")
-                
-                predictions = np.polyval(coeffs, x_vals)
-                pred_formatted = [round(p, 4) if not float(p).is_integer() else int(p) for p in predictions]
-                
-                df = pd.DataFrame({'X': x_vals, 'Actual Y': y_vals, 'Predicted Y': pred_formatted})
-                st.dataframe(df, use_container_width=True)
-                st.success("Curve fitted successfully.")
-                
-            except Exception as e:
-                st.error(f"Error computing Least Squares. Please check formatting of inputs. ({e})")
+            coeffs = np.polyfit(x_vals, y_vals, degree)
+            x_sym = sp.Symbol('x')
+            
+            # Formatting the coefficients nicely for sympy
+            rounded_coeffs = [round(c, 4) if not float(c).is_integer() else int(c) for c in coeffs]
+            poly_expr = sum(c * x_sym**(degree - i) for i, c in enumerate(rounded_coeffs))
+            
+            st.success("Calculation Complete")
+            st.markdown("**Fitted Polynomial Equation:**")
+            st.latex(f"f(x) = {sp.latex(poly_expr)}")
+            
+            predictions = np.polyval(coeffs, x_vals)
+            # Formatting the actual results to limits
+            pred_formatted = [round(p, 4) if not float(p).is_integer() else int(p) for p in predictions]
+            df = pd.DataFrame({'X': x_vals, 'Actual Y': y_vals, 'Predicted Y': pred_formatted})
+            st.dataframe(df, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 def cubic_splines_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Cubic Splines")
+    st.markdown("Evaluate piece-wise polynomial interpolations across data points.")
+    st.divider()
 
-    with col_in:
-        with st.form("cubic_splines_form"):
-            c1, c2 = st.columns(2)
-            with c1:
-                x_input = st.text_input("X values (comma-separated)", value="1, 2, 3, 4, 5")
-            with c2:
-                y_input = st.text_input("Y values (comma-separated)", value="2, 4, 5, 4, 5")
-                
-            eval_x = st.number_input("Enter 'x' value to estimate 'y'", value=2.5)
-            submitted = st.form_submit_button("Calculate Spline", type="primary")
+    with st.form("cubic_splines_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            x_input = st.text_input("Enter X values (comma-separated)", value="1, 2, 3, 4, 5")
+        with col2:
+            y_input = st.text_input("Enter Y values (comma-separated)", value="2, 4, 5, 4, 5")
             
-    with col_out:
-        if submitted:
-            try:
-                x_vals = [float(i.strip()) for i in x_input.split(',') if i.strip()]
-                y_vals = [float(i.strip()) for i in y_input.split(',') if i.strip()]
+        eval_x = st.number_input("Enter an 'x' value to estimate 'y'", value=2.5)
+        submitted = st.form_submit_button("Calculate Spline", type="primary")
+        
+    if submitted:
+        try:
+            x_vals = [float(i.strip()) for i in x_input.split(',')]
+            y_vals = [float(i.strip()) for i in y_input.split(',')]
+            
+            if len(x_vals) < 3:
+                st.error("At least 3 points are required.")
+                return
                 
-                if len(x_vals) != len(y_vals):
-                    st.error("X and Y inputs must have the exact same number of data points.")
-                    return
-                if len(x_vals) < 4:
-                    st.error("Cubic splines generally require at least 4 distinct data points.")
-                    return
-                    
-                sorted_pairs = sorted(zip(x_vals, y_vals))
-                x_sorted = np.array([p[0] for p in sorted_pairs])
-                y_sorted = np.array([p[1] for p in sorted_pairs])
-                
-                # Check for duplicate X values
-                if len(x_sorted) != len(np.unique(x_sorted)):
-                    st.error("Duplicate X values found. Cubic Splines require unique X coordinates.")
-                    return
-                
-                cs = CubicSpline(x_sorted, y_sorted, bc_type='not-a-knot')
-                result = cs(eval_x)
-                
-                st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Interpolated Result:</span>", unsafe_allow_html=True)
-                st.text_input(f"f({eval_x})", value=format_res(result), disabled=True)
-                st.success("Spline generated successfully.")
-            except Exception as e:
-                st.error(f"Error generating spline: {e}")
+            sorted_pairs = sorted(zip(x_vals, y_vals))
+            x_sorted = np.array([p[0] for p in sorted_pairs])
+            y_sorted = np.array([p[1] for p in sorted_pairs])
+            
+            cs = CubicSpline(x_sorted, y_sorted, bc_type='not-a-knot')
+            result = cs(eval_x)
+            
+            st.success("Spline generated successfully.")
+            st.metric(label=f"Interpolated value for f({eval_x})", value=format_res(result))
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 def pca_ui():
-    col_in, col_spacer, col_out = st.columns([1.2, 0.1, 1.2])
+    st.header("Principal Component Analysis")
+    st.markdown("Analyze patterns in data dimensionality by extracting principal components.")
+    st.divider()
 
-    with col_in:
-        c1, c2 = st.columns(2)
-        with c1:
-            r = st.number_input("Number of samples (rows)", min_value=2, value=4)
-        with c2:
-            c = st.number_input("Number of features (cols)", min_value=1, value=3)
-        
-        df_data = create_interactive_matrix("Data", r, c)
-        calc_btn = st.button("Calculate PCA", type="primary")
+    col1, col2 = st.columns(2)
+    with col1:
+        r = st.number_input("Number of samples (rows)", min_value=2, value=4)
+    with col2:
+        c = st.number_input("Number of features (columns)", min_value=1, value=3)
+    
+    df_data = create_interactive_matrix("Data", r, c)
+    st.divider()
 
-    with col_out:
-        if calc_btn:
-            try:
-                X = df_data.astype(float).to_numpy()
-                
-                if X.shape[0] < 2:
-                    st.error("PCA requires at least 2 samples (rows) to compute covariance.")
-                    return
-                    
-                mu = np.mean(X, axis=0)
-                Xc = X - mu
-                C = np.cov(Xc, rowvar=False)
-                
-                # Handle edge case where there's only 1 feature
-                if X.shape[1] == 1:
-                    C = np.array([[C]]) if np.isscalar(C) else C
-
-                eigenvalues, V = np.linalg.eigh(C)
-                
-                # Sort descending
-                idx = np.argsort(eigenvalues)[::-1]
-                V = V[:, idx]
-                
-                Y = np.dot(Xc, V)
-                
-                st.markdown("<span style='color:#AAAAAA; font-family:monospace; font-size:0.9rem;'>Principal Components:</span>", unsafe_allow_html=True)
-                st.dataframe(pd.DataFrame(format_matrix(Y)), use_container_width=True)
-                st.success("PCA Calculated successfully.")
-            except Exception as e:
-                st.error(f"Error computing PCA. Verify data inputs are valid. ({e})")
-
-
-# --- STATE INITIALIZATION ---
-if "main_category" not in st.session_state:
-    st.session_state.main_category = "Single Variable Equation"
-
-# --- SIDEBAR ---
-with st.sidebar:
-    col_logo, col_text = st.columns([1, 4])
-    with col_logo:
+    if st.button("Calculate PCA", type="primary"):
         try:
-            st.image("ComputationalLOGO.png", use_container_width=True)
-        except:
-            st.markdown("📈") 
+            X = df_data.to_numpy()
             
-    with col_text:
-        st.markdown("<h3 style='color: white; margin-top: 0; padding-top: 0; font-family: monospace; font-size: 1.1rem;'>Computational<br><span style='color: #d4ff00;'>Toolkit</span></h3>", unsafe_allow_html=True)
-    
-    st.write("") 
-    st.write("") 
-    
-    if st.button("Single Variable Equation"): st.session_state.main_category = "Single Variable Equation"
-    if st.button("System of Linear Equations"): st.session_state.main_category = "System of Linear Equations"
-    if st.button("Approximation"): st.session_state.main_category = "Approximation"
+            mu = np.mean(X, axis=0)
+            Xc = X - mu
+            C = np.cov(Xc, rowvar=False)
+            eigenvalues, V = np.linalg.eigh(C)
+            D = np.diag(eigenvalues)
+            Y = np.dot(Xc, V)
+            
+            st.subheader("Results")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write("**Centered Data:**")
+                st.dataframe(pd.DataFrame(format_matrix(Xc)), use_container_width=True)
+                st.write("**Covariance Matrix:**")
+                st.dataframe(pd.DataFrame(format_matrix(C)), use_container_width=True)
+                st.write("**Eigenvalues:**")
+                st.dataframe(pd.DataFrame(format_matrix(D)), use_container_width=True)
+            with col_b:
+                st.write("**Eigenvectors:**")
+                st.dataframe(pd.DataFrame(format_matrix(V)), use_container_width=True)
+                st.write("**Principal Components:**")
+                st.dataframe(pd.DataFrame(format_matrix(Y)), use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-# --- MAIN AREA ---
-if st.session_state.main_category == "Single Variable Equation":
-    tabs = st.tabs(["Bisection", "Linear Interpolation", "Method of Secants", "Newton's Method"])
-    with tabs[0]: bisection_ui()
-    with tabs[1]: linear_interpolation_ui()
-    with tabs[2]: secants_ui()
-    with tabs[3]: newtons_ui()
+# --- MAIN SIDEBAR ROUTING ---
 
-elif st.session_state.main_category == "System of Linear Equations":
-    tabs = st.tabs(["Addition", "Subtraction", "Multiplication", "Gaussian Elimination"])
-    with tabs[0]: matrix_ui("addition")
-    with tabs[1]: matrix_ui("subtraction")
-    with tabs[2]: matrix_ui("multiplication")
-    with tabs[3]: gaussian_elimination_ui()
+st.sidebar.title(" Computational Science")
+st.sidebar.markdown("Select a mathematical method from the dropdown below to begin.")
+category = st.sidebar.selectbox(
+    "Category", 
+    ["Single Variable Equation", "System of Linear Equations", "Approximation"]
+)
 
-elif st.session_state.main_category == "Approximation":
-    tabs = st.tabs(["Least Squares", "Cubic Splines", "Principal Component Analysis"])
-    with tabs[0]: least_squares_ui()
-    with tabs[1]: cubic_splines_ui()
-    with tabs[2]: pca_ui()
+st.sidebar.divider()
+
+if category == "Single Variable Equation":
+    method = st.sidebar.radio("Subfunction", ["Bisection", "Linear Interpolation", "Method of Secants", "Newton's Method"])
+    if method == "Bisection": bisection_ui()
+    elif method == "Linear Interpolation": linear_interpolation_ui()
+    elif method == "Method of Secants": secants_ui()
+    elif method == "Newton's Method": newtons_ui()
+
+elif category == "System of Linear Equations":
+    method = st.sidebar.radio("Subfunction", ["Addition", "Subtraction", "Multiplication", "Gaussian Elimination"])
+    if method == "Gaussian Elimination":
+        gaussian_elimination_ui()
+    else:
+        matrix_ui(method.lower())
+
+elif category == "Approximation":
+    method = st.sidebar.radio("Subfunction", ["Least Squares", "Cubic Splines", "Principal Component Analysis"])
+    if method == "Least Squares": least_squares_ui()
+    elif method == "Cubic Splines": cubic_splines_ui()
+    elif method == "Principal Component Analysis": pca_ui()
