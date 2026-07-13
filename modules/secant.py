@@ -4,7 +4,7 @@ from utils import render_root_results
 
 def secants_ui():
     st.header("Method of Secants")
-    st.markdown("Find the root utilizing secant lines through sequential estimates.)
+    st.markdown("Find the root utilizing secant lines through sequential estimates.")
     st.divider()
 
     col_in, col_out = st.columns([1, 1], gap="large")
