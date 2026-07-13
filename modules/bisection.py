@@ -4,9 +4,8 @@ from utils import sign, render_root_results
 
 def bisection_ui():
     st.header("Bisection Method")
-    with st.container(border=True):
-        st.markdown("Find the root of a function by repeatedly bisecting an interval.")
-    st.write("")
+    st.markdown("Find the root of a function by repeatedly bisecting an interval.")
+    st.divider()
 
     col_in, col_out = st.columns([1, 1], gap="large")
     
