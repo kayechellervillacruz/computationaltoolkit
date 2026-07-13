@@ -2,21 +2,31 @@
 <img width="1787" height="820" alt="image" src="https://github.com/user-attachments/assets/57d5aa40-7054-4526-93df-925596ae8cf7" />
 
 
+Here is the updated `README.md` with your notes and documentation link included. I have kept the professional tone while ensuring your message about the development timeline and future plans is clearly communicated.
+
+---
+
 # Computational Science Toolkit
 
 The **Computational Science Toolkit** is a modern, responsive web application designed to streamline the exploration and execution of numerical methods. Built with Streamlit, this tool serves as a professional-grade interface for students and researchers to perform complex mathematical computations with ease.
 
-This project prioritizes clean architecture and a modern "dark-mode" desktop experience, allowing users to focus on computational results rather than interface navigation.
+> **Project Note:** This toolkit was developed as a project for **CS319**. Detailed documentation regarding the development and methodology is available here: **[Access Documentation](https://drive.google.com/drive/folders/1I3h5q-RlItVDFrf8THZ0c0CWjvyfCjpu?usp=drive_link)**.
 
 ---
 
-## Features
+##  Development Status
+
+Please note that this project was developed within a constrained timeframe. I appreciate your understanding regarding the current scope, and I plan to implement further refinements, optimizations, and bug fixes in future updates.
+
+---
+
+##  Key Features
 
 The toolkit is organized into three primary modules, each housing robust numerical algorithms:
 
 ### 1. Single Variable Equations
 
-Solve for the roots of equations with high precision using established numerical methods:
+Solve for the roots of equations with high precision:
 
 * **Bisection Method:** Reliable interval-based root finding.
 * **Linear Interpolation:** Efficient approximation using linear segments.
@@ -50,8 +60,6 @@ Process coordinate data and analyze patterns:
 ---
 
 ##  Project Structure
-
-The project follows a modular architecture to ensure maintainability and separation of concerns:
 
 ```text
 ComputationalToolkit/
@@ -104,11 +112,8 @@ streamlit run app.py
 
 ##  Design Philosophy
 
-This toolkit was built to resemble professional desktop engineering software. It features:
+This toolkit was built to resemble professional desktop engineering software, featuring:
 
-* **Dark-themed UI** with high-contrast elements for reduced eye strain.
-
-NOTE: This toolkit was built for my project for CS319, you can also access my documenation for this toolkit 
-Documentaion Link: https://drive.google.com/drive/folders/1I3h5q-RlItVDFrf8THZ0c0CWjvyfCjpu?usp=drive_link
-* **Responsive Layout** optimized for desktop and tablet usage.
-* **Modular Component Architecture** allowing for easy additions of new mathematical methods without cluttering the main logic.
+* **Dark-themed UI** optimized for readability.
+* **Modular Component Architecture** for easy scalability.
+* **Custom Navigation** for a seamless, application-like feel.
