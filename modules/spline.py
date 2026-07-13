@@ -12,7 +12,7 @@ def cubic_splines_ui():
 
     with col_in:
         with st.container(border=True):
-            st.markdown("##### ⚙️ Input Parameters")
+            st.markdown("#####  Input Parameters")
             with st.form("cubic_splines_form"):
                 c1, c2 = st.columns(2)
                 with c1:
