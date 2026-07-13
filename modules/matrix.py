@@ -1,12 +1,13 @@
+# modules/matrix.py
 import streamlit as st
 import numpy as np
 import pandas as pd
 from utils import format_matrix
 
-def create_interactive_matrix(name, rows, cols, key_suffix):
+def create_interactive_matrix(name, rows, cols, operation):
     st.write(f"**Matrix {name}**")
     df = pd.DataFrame(np.zeros((rows, cols)))
-    return st.data_editor(df, key=f"matrix_{name}_{rows}x{cols}_{key_suffix}", num_rows="fixed")
+    return st.data_editor(df, key=f"matrix_{name}_{rows}x{cols}_{operation}", num_rows="fixed")
 
 def matrix_ui(operation):
     st.header(f"Matrix {operation.capitalize()}")
@@ -14,7 +15,6 @@ def matrix_ui(operation):
     st.divider()
 
     col1, col2 = st.columns(2)
-    # Using the operation name as a unique key suffix
     with col1:
         r_a = st.number_input("Matrix A Rows", min_value=1, value=2, key=f"ra_{operation}")
         c_a = st.number_input("Matrix A Cols", min_value=1, value=2, key=f"ca_{operation}")
@@ -36,7 +36,6 @@ def matrix_ui(operation):
     if st.button(f"Calculate {operation.capitalize()}", key=f"btn_{operation}", type="primary"):
         A = df_A.to_numpy()
         B = df_B.to_numpy()
-        
         try:
             if operation == "addition": C = A + B
             elif operation == "subtraction": C = A - B
