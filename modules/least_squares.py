@@ -27,7 +27,7 @@ def least_squares_ui():
     if submitted:
         with col_out:
             with st.container(border=True):
-                st.markdown("##### 📈 Results")
+                st.markdown("#####  Results")
                 try:
                     x_vals = np.array([float(i.strip()) for i in x_input.split(',')])
                     y_vals = np.array([float(i.strip()) for i in y_input.split(',')])
