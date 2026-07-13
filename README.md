@@ -107,5 +107,8 @@ streamlit run app.py
 This toolkit was built to resemble professional desktop engineering software. It features:
 
 * **Dark-themed UI** with high-contrast elements for reduced eye strain.
+
+NOTE: This toolkit was built for my project for CS319, you can also access my documenation for this toolkit 
+Documentaion Link: https://drive.google.com/drive/folders/1I3h5q-RlItVDFrf8THZ0c0CWjvyfCjpu?usp=drive_link
 * **Responsive Layout** optimized for desktop and tablet usage.
 * **Modular Component Architecture** allowing for easy additions of new mathematical methods without cluttering the main logic.
