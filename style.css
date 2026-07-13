@@ -1,4 +1,4 @@
-/* --- Global Theme --- */
+/* --- Global Theme & Palette --- */
 :root {
     --bg-color: #222222;
     --card-color: #31322E;
@@ -6,71 +6,103 @@
     --text-color: #FFFFFF;
     --secondary-text: #A8A8A8;
     --border-color: #4B4B4B;
+    --tab-border: #555555;
 }
 
 [data-testid="stAppViewContainer"] {
     background-color: var(--bg-color);
 }
 
-/* Remove default padding */
-.main .block-container {
-    padding-top: 2rem;
-}
-
-/* Hide Streamlit UI */
+/* --- Hide Streamlit UI --- */
 #MainMenu, header, footer, [data-testid="stDecoration"] { visibility: hidden; }
 
-/* Sidebar */
+/* --- Sidebar --- */
 [data-testid="stSidebar"] {
     background-color: var(--card-color);
     border-right: 1px solid var(--border-color);
 }
 
-/* Cards / Containers */
+/* --- Cards / Containers --- */
 [data-testid="stVerticalBlockBorderWrapper"] {
     background-color: var(--card-color) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 12px !important;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    padding: 20px !important;
 }
 
-/* --- Custom Tab Bar Styles --- */
+/* --- Custom Tab Bar Logic --- */
+/* Target the buttons inside the column container we created for tabs */
+div[data-testid="column"] button {
+    border-radius: 8px 8px 0 0 !important;
+    border: 1px solid var(--tab-border) !important;
+    margin-right: -1px !important; /* Remove gaps */
+    transition: all 0.3s ease !important;
+}
+
+/* Active Tab State */
+/* We target the button when it's the active selection */
+div[data-testid="column"] button:active, 
+div[data-testid="column"] button:focus {
+    background-color: var(--accent-color) !important;
+    color: #222222 !important;
+    border-bottom: 2px solid var(--accent-color) !important;
+}
+
+/* Custom classes for your utils.py logic */
 .tab-button-active {
     background-color: var(--accent-color) !important;
     color: #222222 !important;
+    border: 1px solid var(--tab-border) !important;
     border-bottom: 2px solid var(--accent-color) !important;
     border-radius: 8px 8px 0 0 !important;
 }
 
 .tab-button-inactive {
-    background-color: #4B4B4B !important;
-    color: #FFFFFF !important;
-    border-bottom: 1px solid var(--border-color) !important;
+    background-color: var(--card-color) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--tab-border) !important;
     border-radius: 8px 8px 0 0 !important;
 }
 
-/* Inputs & Forms */
-.stTextInput input, .stNumberInput input {
+/* --- Inputs & Forms --- */
+.stTextInput input, .stNumberInput input, .stTextArea textarea {
     background-color: #1a1a1a !important;
     color: white !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 10px !important;
+    padding: 10px !important;
 }
 
-/* Buttons */
+.stTextInput input:focus, .stNumberInput input:focus {
+    border: 1px solid var(--accent-color) !important;
+    box-shadow: 0 0 5px rgba(212, 255, 0, 0.2);
+}
+
+/* --- Buttons --- */
 .stButton button {
     border-radius: 8px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 1rem !important;
     transition: all 0.2s ease !important;
 }
 
+/* Main Calculate Button */
 [data-testid="baseButton-primary"] {
     background-color: var(--accent-color) !important;
     color: #222222 !important;
     border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 [data-testid="baseButton-primary"]:hover {
-    filter: brightness(1.2);
-    box-shadow: 0 0 10px rgba(212, 255, 0, 0.3);
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(212, 255, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+/* --- Metrics / Results Panel --- */
+[data-testid="stMetricValue"] {
+    font-size: 22px !important;
+    color: var(--accent-color) !important;
 }
