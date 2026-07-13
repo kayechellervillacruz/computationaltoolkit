@@ -1,0 +1,77 @@
+/* Hide default Streamlit elements */
+header { visibility: hidden; }
+footer { visibility: hidden; }
+[data-testid="collapsedControl"] { display: none; }
+
+/* Main Background */
+.stApp {
+    background-color: #222222;
+    color: #FFFFFF;
+}
+
+/* Rounded Cards using Streamlit's container borders */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: #31322E !important;
+    border-color: #31322E !important;
+    border-radius: 12px;
+}
+
+/* Custom Navigation & Secondary Buttons */
+button[kind="secondary"] {
+    background-color: #31322E;
+    color: #d4ff00;
+    border: 1px solid #d4ff00;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+button[kind="secondary"]:hover {
+    background-color: #d4ff00;
+    color: #222222;
+}
+
+/* Primary Action Buttons */
+button[kind="primary"] {
+    background-color: #d4ff00;
+    color: #222222;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+}
+button[kind="primary"]:hover {
+    background-color: #bfe600;
+}
+
+/* Input Fields */
+.stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea {
+    background-color: #8E8E8E !important;
+    color: #222222 !important;
+    border-radius: 6px !important;
+    border: none !important;
+}
+label {
+    color: #8E8E8E !important;
+}
+
+/* Custom Horizontal Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background-color: transparent;
+}
+.stTabs [data-baseweb="tab"] {
+    color: #8E8E8E;
+    background-color: #31322E;
+    border-radius: 8px;
+    padding: 10px 20px;
+    border: none;
+}
+.stTabs [aria-selected="true"] {
+    background-color: #d4ff00 !important;
+}
+.stTabs [aria-selected="true"] p {
+    color: #222222 !important;
+    font-weight: bold;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none;
+}
