@@ -5,12 +5,15 @@ import pandas as pd
 from utils import format_res
 
 def least_squares_ui():
+    st.header("Least Squares Approximation")
+    st.markdown("Fit a polynomial curve to a set of coordinate data.")
+    st.divider()
+
     col_in, col_out = st.columns([1, 1], gap="large")
 
     with col_in:
-        # Wrap inputs in a card
         with st.container(border=True):
-            st.markdown("##### ⚙️ Input Parameters")
+            st.markdown("##### Input Parameters")
             with st.form("least_squares_form"):
                 c1, c2 = st.columns(2)
                 with c1:
@@ -23,7 +26,6 @@ def least_squares_ui():
             
     if submitted:
         with col_out:
-            # Wrap results in a card
             with st.container(border=True):
                 st.markdown("##### 📈 Results")
                 try:
@@ -39,7 +41,7 @@ def least_squares_ui():
                     coeffs = np.polyfit(x_vals, y_vals, degree)
                     x_sym = sp.Symbol('x')
                     
-                    # Formatting the coefficients
+                    # Formatting coefficients
                     rounded_coeffs = [round(c, 4) if not float(c).is_integer() else int(c) for c in coeffs]
                     poly_expr = sum(c * x_sym**(degree - i) for i, c in enumerate(rounded_coeffs))
                     
