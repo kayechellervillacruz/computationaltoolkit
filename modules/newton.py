@@ -3,6 +3,10 @@ import sympy as sp
 from utils import render_root_results
 
 def newtons_ui():
+    st.header("Newton's Method")
+    st.markdown("Utilize the derivative of a function to rapidly converge on a root.")
+    st.divider()
+
     col_in, col_out = st.columns([1, 1], gap="large")
 
     with col_in:
