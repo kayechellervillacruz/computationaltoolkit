@@ -3,9 +3,10 @@ import numpy as np
 import sympy as sp
 from scipy.interpolate import CubicSpline
 import pandas as pd
+import re
 
 # --- PAGE CONFIGURATION ---
-st.set_page_config(page_title="Computational Science Toolkit", layout="wide")
+st.set_page_config(page_title="Computational Science Toolkit", page_icon="🧮", layout="wide")
 
 # --- HELPER FUNCTIONS ---
 def sign(val):
@@ -19,10 +20,14 @@ def format_res(val):
         return f"{int(val)}"
     return f"{float(val):.4f}"
 
+def format_matrix(matrix):
+    """Formats a 2D array: integers drop decimals, floats rounded to 4 decimals."""
+    return [[int(val) if float(val).is_integer() else round(float(val), 4) for val in row] for row in matrix]
+
 def display_results_dashboard(root, f_val, iterations, status_msg, status_type="success"):
     """Creates a clean, unified dashboard for single variable results."""
     st.divider()
-    st.subheader("Calculation Results")
+    st.subheader("📊 Calculation Results")
     
     if status_type == "success":
         st.success(status_msg)
@@ -304,13 +309,103 @@ def matrix_ui(operation):
                 C = np.dot(A, B)
                 
             st.success("Resulting matrix:")
-            
-            # Formatting to 4 decimal places or integer
-            C_formatted = [[int(val) if float(val).is_integer() else round(float(val), 4) for val in row] for row in C]
-            st.dataframe(pd.DataFrame(C_formatted), use_container_width=True)
+            st.dataframe(pd.DataFrame(format_matrix(C)), use_container_width=True)
             
         except Exception as e:
             st.error(f"Error computing matrix: {e}")
+
+def gaussian_elimination_ui():
+    st.header("Gaussian Elimination")
+    st.markdown("Solve a system of linear equations using partial pivoting and back substitution.")
+    st.divider()
+
+    with st.form("gaussian_form"):
+        st.info("Enter your equations below, one per line. Example: `2x + y = 5`")
+        eq_input = st.text_area("Linear Equations", value="2x + y = 5\nx - y = 1", height=150)
+        submitted = st.form_submit_button("Solve System", type="primary")
+
+    if submitted:
+        try:
+            raw_lines = [line.strip() for line in eq_input.split('\n') if line.strip()]
+            num_eq = len(raw_lines)
+            
+            if num_eq <= 0:
+                st.error("Please enter at least one equation.")
+                return
+            
+            equations = []
+            for eq_str in raw_lines:
+                # Automatically add '*' between numbers and variables (e.g., '2x' becomes '2*x')
+                eq_str = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', eq_str)
+                
+                if '=' in eq_str:
+                    lhs, rhs = eq_str.split('=', 1)
+                    expr_str = f"({lhs}) - ({rhs})"
+                else:
+                    expr_str = eq_str
+                    
+                expr = sp.sympify(expr_str)
+                equations.append(expr)
+                
+            symbols = set()
+            for eq in equations:
+                symbols.update(eq.free_symbols)
+            symbols = sorted(list(symbols), key=lambda s: s.name)
+            
+            if not symbols:
+                st.error("No variables found in the equations.")
+                return
+                
+            if len(symbols) != num_eq:
+                st.error(f"Gaussian Elimination requires a square system (variables must equal equations). Found {len(symbols)} variables and {num_eq} equations.")
+                return
+                
+            A_sp, b_sp = sp.linear_eq_to_matrix(equations, *symbols)
+            A = np.array(A_sp).astype(float)
+            b = np.array(b_sp).astype(float).flatten()
+            n = len(b)
+            
+            augmented_matrix = np.column_stack((A, b))
+            
+            st.subheader("Calculation Steps")
+            st.write(f"**Detected Variables:** {', '.join(str(s) for s in symbols)}")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Initial Augmented Matrix:**")
+                st.dataframe(pd.DataFrame(format_matrix(augmented_matrix)), use_container_width=True)
+            
+            # Forward Elimination
+            for i in range(n):
+                max_row = i + np.argmax(np.abs(augmented_matrix[i:n, i]))
+                if augmented_matrix[max_row, i] == 0:
+                    st.error("System is singular or does not have a unique solution.")
+                    return
+                    
+                augmented_matrix[[i, max_row]] = augmented_matrix[[max_row, i]]
+                
+                for j in range(i + 1, n):
+                    factor = augmented_matrix[j, i] / augmented_matrix[i, i]
+                    augmented_matrix[j, i:] = augmented_matrix[j, i:] - factor * augmented_matrix[i, i:]
+                    
+            with col2:
+                st.write("**Upper Triangular Matrix (Row Echelon Form):**")
+                st.dataframe(pd.DataFrame(format_matrix(augmented_matrix)), use_container_width=True)
+                
+            # Back Substitution
+            x = np.zeros(n)
+            for i in range(n - 1, -1, -1):
+                x[i] = (augmented_matrix[i, -1] - np.dot(augmented_matrix[i, i+1:n], x[i+1:n])) / augmented_matrix[i, i]
+                
+            st.divider()
+            st.subheader("Final Results")
+            res_cols = st.columns(len(symbols))
+            for idx, (var, sol) in enumerate(zip(symbols, x)):
+                res_cols[idx % len(res_cols)].metric(f"Variable: {var}", format_res(sol))
+                
+        except Exception as e:
+            st.error(f"Invalid mathematical syntax or error: {e}")
 
 # --- 3. APPROXIMATIONS ---
 
@@ -352,7 +447,9 @@ def least_squares_ui():
             st.latex(f"f(x) = {sp.latex(poly_expr)}")
             
             predictions = np.polyval(coeffs, x_vals)
-            df = pd.DataFrame({'X': x_vals, 'Actual Y': y_vals, 'Predicted Y': predictions})
+            # Formatting the actual results to limits
+            pred_formatted = [round(p, 4) if not float(p).is_integer() else int(p) for p in predictions]
+            df = pd.DataFrame({'X': x_vals, 'Actual Y': y_vals, 'Predicted Y': pred_formatted})
             st.dataframe(df, use_container_width=True)
             
         except Exception as e:
@@ -424,23 +521,23 @@ def pca_ui():
             col_a, col_b = st.columns(2)
             with col_a:
                 st.write("**Centered Data:**")
-                st.dataframe(pd.DataFrame(Xc), use_container_width=True)
+                st.dataframe(pd.DataFrame(format_matrix(Xc)), use_container_width=True)
                 st.write("**Covariance Matrix:**")
-                st.dataframe(pd.DataFrame(C), use_container_width=True)
+                st.dataframe(pd.DataFrame(format_matrix(C)), use_container_width=True)
                 st.write("**Eigenvalues:**")
-                st.dataframe(pd.DataFrame(D), use_container_width=True)
+                st.dataframe(pd.DataFrame(format_matrix(D)), use_container_width=True)
             with col_b:
                 st.write("**Eigenvectors:**")
-                st.dataframe(pd.DataFrame(V), use_container_width=True)
+                st.dataframe(pd.DataFrame(format_matrix(V)), use_container_width=True)
                 st.write("**Principal Components:**")
-                st.dataframe(pd.DataFrame(Y), use_container_width=True)
+                st.dataframe(pd.DataFrame(format_matrix(Y)), use_container_width=True)
             
         except Exception as e:
             st.error(f"Error: {e}")
 
 # --- MAIN SIDEBAR ROUTING ---
 
-st.sidebar.title("Computational Science")
+st.sidebar.title(" Computational Science")
 st.sidebar.markdown("Select a mathematical method from the dropdown below to begin.")
 category = st.sidebar.selectbox(
     "Category", 
@@ -457,8 +554,11 @@ if category == "Single Variable Equation":
     elif method == "Newton's Method": newtons_ui()
 
 elif category == "System of Linear Equations":
-    method = st.sidebar.radio("Subfunction", ["Addition", "Subtraction", "Multiplication"])
-    matrix_ui(method.lower())
+    method = st.sidebar.radio("Subfunction", ["Addition", "Subtraction", "Multiplication", "Gaussian Elimination"])
+    if method == "Gaussian Elimination":
+        gaussian_elimination_ui()
+    else:
+        matrix_ui(method.lower())
 
 elif category == "Approximation":
     method = st.sidebar.radio("Subfunction", ["Least Squares", "Cubic Splines", "Principal Component Analysis"])
