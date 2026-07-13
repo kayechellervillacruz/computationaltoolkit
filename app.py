@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+from utils import render_custom_tabs, load_css # Ensure load_css is in your utils or kept here
 
 # Set page config at the very top
 st.set_page_config(page_title="Computational Science Toolkit", page_icon="🧮", layout="wide", initial_sidebar_state="collapsed")
@@ -16,18 +17,24 @@ from modules.spline import cubic_splines_ui
 from modules.pca import pca_ui
 
 # --- LOAD CSS ---
-def load_css():
-    try:
-        with open("style.css", "r") as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except Exception as e:
-        pass # Silently pass if style.css isn't found during init
-
-load_css()
+# Ensure style.css is in the same directory as app.py
+try:
+    with open("style.css", "r") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+except Exception:
+    pass 
 
 # --- STATE INITIALIZATION ---
 if "main_category" not in st.session_state:
     st.session_state.main_category = "Single Variable Equation"
+if "active_method" not in st.session_state:
+    st.session_state.active_method = "Bisection"
+
+# Helper to switch categories and reset sub-tabs
+def switch_category(cat, default_method):
+    st.session_state.main_category = cat
+    st.session_state.active_method = default_method
+    st.rerun()
 
 # --- MAIN LAYOUT ---
 nav_col, main_col = st.columns([1, 4], gap="large")
@@ -43,32 +50,39 @@ with nav_col:
     
     st.write("") # Spacer
     
-    # Custom Sidebar Menu
+    # Custom Sidebar Navigation
     if st.button("Single Variable Equation", use_container_width=True): 
-        st.session_state.main_category = "Single Variable Equation"
+        switch_category("Single Variable Equation", "Bisection")
     if st.button("System of Linear Equations", use_container_width=True): 
-        st.session_state.main_category = "System of Linear Equations"
+        switch_category("System of Linear Equations", "Addition")
     if st.button("Approximation", use_container_width=True): 
-        st.session_state.main_category = "Approximation"
+        switch_category("Approximation", "Least Squares")
 
 # --- RIGHT CONTENT PANEL ---
 with main_col:
+    # Routing Logic using Custom Tabs
     if st.session_state.main_category == "Single Variable Equation":
-        tabs = st.tabs(["Bisection", "Linear Interpolation", "Method of Secants", "Newton's Method"])
-        with tabs[0]: bisection_ui()
-        with tabs[1]: linear_interpolation_ui()
-        with tabs[2]: secants_ui()
-        with tabs[3]: newtons_ui()
+        methods = ["Bisection", "Linear Interpolation", "Method of Secants", "Newton's Method"]
+        render_custom_tabs(methods, "active_method")
+        
+        if st.session_state.active_method == "Bisection": bisection_ui()
+        elif st.session_state.active_method == "Linear Interpolation": linear_interpolation_ui()
+        elif st.session_state.active_method == "Method of Secants": secants_ui()
+        elif st.session_state.active_method == "Newton's Method": newtons_ui()
 
     elif st.session_state.main_category == "System of Linear Equations":
-        tabs = st.tabs(["Addition", "Subtraction", "Multiplication", "Gaussian Elimination"])
-        with tabs[0]: matrix_ui("addition")
-        with tabs[1]: matrix_ui("subtraction")
-        with tabs[2]: matrix_ui("multiplication")
-        with tabs[3]: gaussian_elimination_ui()
+        methods = ["Addition", "Subtraction", "Multiplication", "Gaussian Elimination"]
+        render_custom_tabs(methods, "active_method")
+        
+        if st.session_state.active_method == "Addition": matrix_ui("addition")
+        elif st.session_state.active_method == "Subtraction": matrix_ui("subtraction")
+        elif st.session_state.active_method == "Multiplication": matrix_ui("multiplication")
+        elif st.session_state.active_method == "Gaussian Elimination": gaussian_elimination_ui()
 
     elif st.session_state.main_category == "Approximation":
-        tabs = st.tabs(["Least Squares", "Cubic Splines", "Principal Component Analysis"])
-        with tabs[0]: least_squares_ui()
-        with tabs[1]: cubic_splines_ui()
-        with tabs[2]: pca_ui()
+        methods = ["Least Squares", "Cubic Splines", "Principal Component Analysis"]
+        render_custom_tabs(methods, "active_method")
+        
+        if st.session_state.active_method == "Least Squares": least_squares_ui()
+        elif st.session_state.active_method == "Cubic Splines": cubic_splines_ui()
+        elif st.session_state.active_method == "Principal Component Analysis": pca_ui()
