@@ -109,10 +109,10 @@ def linear_interpolation_ui():
         
         col1, col2 = st.columns(2)
         with col1:
-            a = st.number_input("Lower bound (a)", value=-2.0)
+            a = st.number_input("Lower bound (a)", value=0.0)
             tol = st.number_input("Tolerance", value=0.0001, format="%.5f")
         with col2:
-            b = st.number_input("Upper bound (b)", value=1.5)
+            b = st.number_input("Upper bound (b)", value=1.0)
             max_iter = st.number_input("Max iterations", value=50, step=1)
             
         submitted = st.form_submit_button("Calculate Root", type="primary")
@@ -165,7 +165,7 @@ def secants_ui():
     st.divider()
 
     with st.form("secants_form"):
-        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - x")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -217,7 +217,7 @@ def newtons_ui():
     st.divider()
 
     with st.form("newtons_form"):
-        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
+        eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - x")
         
         col1, col2 = st.columns(2)
         with col1:
