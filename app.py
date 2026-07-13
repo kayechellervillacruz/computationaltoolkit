@@ -50,13 +50,20 @@ with nav_col:
     
     st.write("") # Spacer
     
-    # Custom Sidebar Navigation
-    if st.button("Single Variable Equation", use_container_width=True): 
-        switch_category("Single Variable Equation", "Bisection")
-    if st.button("System of Linear Equations", use_container_width=True): 
-        switch_category("System of Linear Equations", "Addition")
-    if st.button("Approximation", use_container_width=True): 
-        switch_category("Approximation", "Least Squares")
+# Navigation Categories
+    categories = ["Single Variable Equation", "System of Linear Equations", "Approximation"]
+    
+    for cat in categories:
+        is_active = st.session_state.main_category == cat
+        btn_type = "primary" if is_active else "secondary"
+        
+        if st.button(cat, use_container_width=True, type=btn_type):
+            st.session_state.main_category = cat
+            # Reset active tab when switching category
+            if cat == "Single Variable Equation": st.session_state.active_method = "Bisection"
+            elif cat == "System of Linear Equations": st.session_state.active_method = "Addition"
+            elif cat == "Approximation": st.session_state.active_method = "Least Squares"
+            st.rerun()
 
 # --- RIGHT CONTENT PANEL ---
 with main_col:
