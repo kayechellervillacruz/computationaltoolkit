@@ -30,17 +30,16 @@ def format_matrix(matrix):
 # --- UI LAYOUT HELPERS ---
 
 def render_custom_tabs(options, session_key):
-    """Renders custom tab buttons using dynamic types for active state."""
     if session_key not in st.session_state:
         st.session_state[session_key] = options[0]
         
     cols = st.columns(len(options))
     for i, option in enumerate(options):
         is_active = st.session_state[session_key] == option
+        # Set type to primary if active (neon green), secondary otherwise (dark gray)
+        btn_type = "primary" if is_active else "secondary"
         
         with cols[i]:
-            # If active, use "primary" (Neon Green), else "secondary" (Dark Gray)
-            btn_type = "primary" if is_active else "secondary"
             if st.button(option, key=f"tab_{option}", use_container_width=True, type=btn_type):
                 st.session_state[session_key] = option
                 st.rerun()
