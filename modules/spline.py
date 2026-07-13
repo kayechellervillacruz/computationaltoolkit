@@ -4,26 +4,36 @@ from scipy.interpolate import CubicSpline
 from utils import format_res
 
 def cubic_splines_ui():
+    st.header("Cubic Splines")
+    st.markdown("Evaluate piece-wise polynomial interpolations across data points.")
+    st.divider()
+
     col_in, col_out = st.columns([1, 1], gap="large")
 
     with col_in:
         with st.container(border=True):
+            st.markdown("##### ⚙️ Input Parameters")
             with st.form("cubic_splines_form"):
                 c1, c2 = st.columns(2)
                 with c1:
                     x_input = st.text_input("X values (comma-separated)", value="1, 2, 3, 4, 5")
                 with c2:
                     y_input = st.text_input("Y values (comma-separated)", value="2, 4, 5, 4, 5")
+                
                 eval_x = st.number_input("Enter 'x' value to estimate 'y'", value=2.5)
-                submitted = st.form_submit_button("Calculate Spline", type="primary")
+                submitted = st.form_submit_button("Calculate Spline", type="primary", use_container_width=True)
             
     if submitted:
         with col_out:
             with st.container(border=True):
+                st.markdown("##### 📈 Results")
                 try:
                     x_vals = [float(i.strip()) for i in x_input.split(',')]
                     y_vals = [float(i.strip()) for i in y_input.split(',')]
-                    if len(x_vals) < 3: return st.error("At least 3 points required.")
+                    
+                    if len(x_vals) < 3:
+                        st.error("At least 3 points are required.")
+                        return
                         
                     sorted_pairs = sorted(zip(x_vals, y_vals))
                     x_sorted = np.array([p[0] for p in sorted_pairs])
