@@ -28,10 +28,16 @@ def render_custom_tabs(options, session_key):
         
     cols = st.columns(len(options))
     for i, option in enumerate(options):
-        with cols[i]:
-            if st.button(option, key=f"tab_{option}", use_container_width=True):
-                st.session_state[session_key] = option
-                st.rerun()
+    is_active = st.session_state[session_key] == option
+    # Apply the specific class string
+    custom_class = "tab-button-active" if is_active else "tab-button-inactive"
+    
+    with cols[i]:
+        # Using markdown to wrap button in a div to apply class is complex, 
+        # so keeping the buttons standardized with the CSS above is the most stable way.
+        if st.button(option, key=f"tab_{option}", use_container_width=True):
+            st.session_state[session_key] = option
+            st.rerun()
 
 def render_root_results(col_out, eq_expr, root, f_val, iterations, status_msg, status_type="success"):
     with col_out:
