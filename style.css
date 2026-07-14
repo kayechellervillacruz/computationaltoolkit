@@ -55,6 +55,17 @@ div.stButton > button[kind="secondary"]:hover {
     color: var(--accent-color) !important;
 }
 
+.form_submit_button > button[kind="secondary"] {
+    background-color: var(--card-color) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.form_submit_button > button[kind="secondary"]:hover {
+    border-color: var(--accent-color) !important;
+    color: var(--accent-color) !important;
+}
+
 /* --- Inputs --- */
 .stTextInput input, .stNumberInput input {
     background-color: #1a1a1a !important;
