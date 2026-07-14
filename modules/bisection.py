@@ -11,7 +11,7 @@ def bisection_ui():
     
     with col_in:
         with st.container(border=True):
-            st.markdown("##### ⚙️ Input Parameters")
+            st.markdown("##### Input Parameters")
             with st.form("bisection_form"):
                 eq_str = st.text_input("Enter equation in terms of 'x'", value="x**3 - 4*x + 1")
                 c1, c2 = st.columns(2)
