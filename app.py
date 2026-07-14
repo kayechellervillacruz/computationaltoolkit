@@ -43,11 +43,16 @@ nav_col, main_col = st.columns([1, 4], gap="large")
 with nav_col:
     # Logo Area
     logo_path = os.path.join("assets", "ComputationalLOGO.png")
+    
     if os.path.exists(logo_path):
+        # Shows the image if you created the folder and added the file
         st.image(logo_path, use_container_width=True)
     else:
-        st.markdown("<h3 style='color: white; margin-top:0;'>Computational<br><span style='color: #d4ff00;'>Toolkit</span></h3>", unsafe_allow_html=True)
-    
+        # Fallback text if the image is missing
+        st.markdown(
+            "<h3 style='color: white; margin-top:0;'>Computational<br><span style='color: #d4ff00;'>Toolkit</span></h3>", 
+            unsafe_allow_html=True
+        )
     st.write("") # Spacer
     
 # Navigation Categories
