@@ -41,9 +41,7 @@ nav_col, main_col = st.columns([1, 4], gap="large")
 
 # --- LEFT NAVIGATION PANEL ---
 with nav_col:
-    # Logo Area
-    logo_path = os.path.join("assets", "ComputationalLOGO.png")
-    
+
     if os.path.exists(logo_path):
         # Shows the image if you created the folder and added the file
         st.image(logo_path, use_container_width=True)
