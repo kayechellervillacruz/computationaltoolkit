@@ -32,36 +32,42 @@ div[data-testid="column"] button {
     transition: all 0.2s ease !important;
 }
 
-/* --- Primary (Active) Buttons (Neon Green) --- */
-/* This forces the button to neon green regardless of Streamlit's default red */
+/* --- Primary (Active / Submit) Buttons (Neon Green) --- */
+/* Targets both regular primary buttons and form submit primary buttons */
 div.stButton > button[kind="primary"], 
+div[data-testid="stFormSubmitButton"] > button[kind="primary"],
 div[data-testid="column"] button:active, 
 div[data-testid="column"] button:focus {
     background-color: var(--accent-color) !important;
     color: #222222 !important;
     border: none !important;
     box-shadow: 0 0 10px rgba(212, 255, 0, 0.3) !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 1rem !important;
+}
+
+/* Hover effect for Primary Buttons */
+div.stButton > button[kind="primary"]:hover, 
+div[data-testid="stFormSubmitButton"] > button[kind="primary"]:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(212, 255, 0, 0.5) !important;
 }
 
 /* --- Secondary (Inactive) Buttons (Dark Gray) --- */
-div.stButton > button[kind="secondary"] {
+/* Targets both regular secondary buttons and form submit secondary buttons */
+div.stButton > button[kind="secondary"],
+div[data-testid="stFormSubmitButton"] > button[kind="secondary"] {
     background-color: var(--card-color) !important;
     color: var(--text-color) !important;
     border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
 }
 
-div.stButton > button[kind="secondary"]:hover {
-    border-color: var(--accent-color) !important;
-    color: var(--accent-color) !important;
-}
-
-.form_submit_button > button[kind="secondary"] {
-    background-color: var(--card-color) !important;
-    color: var(--text-color) !important;
-    border: 1px solid var(--border-color) !important;
-}
-
-.form_submit_button > button[kind="secondary"]:hover {
+/* Hover effect for Secondary Buttons */
+div.stButton > button[kind="secondary"]:hover,
+div[data-testid="stFormSubmitButton"] > button[kind="secondary"]:hover {
     border-color: var(--accent-color) !important;
     color: var(--accent-color) !important;
 }
