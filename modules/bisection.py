@@ -21,7 +21,7 @@ def bisection_ui():
                 with c2:
                     b = st.number_input("Upper bound (b)", value=1.0)
                     max_iter = st.number_input("Max iterations", value=50, step=1)
-                submitted = st.form_submit_button("Calculate Root", type="primary", use_container_width=True)
+                submitted = st.form_submit_button("Calculate Root", type="primary")
             
     if submitted:
         try:
