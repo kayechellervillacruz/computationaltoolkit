@@ -72,6 +72,24 @@ div[data-testid="stFormSubmitButton"] > button[kind="secondary"]:hover {
     color: var(--accent-color) !important;
 }
 
+/* --- Form Submit Button (Neon Green) --- */
+div[data-testid="stFormSubmitButton"] button {
+    background-color: #D4FF00 !important;
+    color: #222222 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Hover effect for the Form Submit Button */
+div[data-testid="stFormSubmitButton"] button:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(212, 255, 0, 0.5) !important;
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
 /* --- Inputs --- */
 .stTextInput input, .stNumberInput input {
     background-color: #1a1a1a !important;
